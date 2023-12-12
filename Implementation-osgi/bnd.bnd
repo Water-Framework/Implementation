@@ -1,0 +1,18 @@
+Bundle-Name: Water OSGi Distribution
+Bundle-SymbolicName: Water-distribution-osgi
+Bundle-Activator: it.water.implementation.osgi.bundle.OsgiDistributionInitializer
+Import-Package: \
+    org.osgi.framework.*,\
+    org.osgi.service.*,\
+    org.osgi.util.*,\
+    org.slf4j.*,\
+    org.hibernate.validator;version='${range;[=,+)}',\
+    org.hibernate.validator.*;version='${range;[=,+)}',\
+    org.hibernate.annotations;version='[5,6)',\
+    javassist.util.proxy,\
+    jakarta.validation,\
+    jakarta.validation.*
+Export-Package: \
+    it.water.*
+DynamicImport-Package: *
+-fixupmessages "Classes found in the wrong directory"; restrict:=error; is:=warning

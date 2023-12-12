@@ -1,0 +1,10 @@
+{
+    "generator-water": {
+        "inner-project": true,
+        "project-type": "custom",
+        "projectName": "Implementation",
+        "projectGroupId": "it.water.implementation",
+        "projectVersion": "3.0.0",
+        "projectFolder": "Implementation-osgi"
+    }
+}

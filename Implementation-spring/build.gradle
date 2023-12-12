@@ -1,0 +1,82 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
+plugins {
+	id "com.github.johnrengelman.shadow" version "7.1.2"
+}
+
+dependencies {
+	//SLF4J
+	implementation group: 'org.slf4j', name: 'slf4j-api', version: project.slf4jVersion
+	implementation group: "javax.ws.rs", name: "javax.ws.rs-api", version: project.jaxWsRsApiVersion
+	//lombok
+	implementation group: 'org.projectlombok', name: 'lombok', version: project.lombokVersion
+	annotationProcessor 'org.projectlombok:lombok:' + project.lombokVersion
+	//Jackson
+	implementation group: 'com.fasterxml.jackson.jaxrs', name: 'jackson-jaxrs-json-provider', version: project.jacksonVersion
+	//Persistence
+	implementation group: 'javax.persistence', name: 'javax.persistence-api', version: project.javaxPersistenceVersion
+	implementation group: 'javax.transaction', name: 'javax.transaction-api', version: project.javaxTransactionApiVersion
+	//Encryption
+	implementation group: 'org.bouncycastle', name: 'bcmail-jdk15on', version: project.bouncyCastleVersion
+
+	implementation group: 'it.water.core', name: 'Core-api', version: project.waterVersion
+	implementation group: 'it.water.core', name: 'Core-bundle', version: project.waterVersion
+	implementation group: 'it.water.core', name: 'Core-interceptors', version: project.waterVersion
+	implementation group: 'it.water.core', name: 'Core-model', version: project.waterVersion
+	implementation group: 'it.water.core', name: 'Core-permission', version: project.waterVersion
+	implementation group: 'it.water.core', name: 'Core-registry', version: project.waterVersion
+	implementation group: 'it.water.core', name: 'Core-security', version: project.waterVersion
+	implementation group: 'it.water.core', name: 'Core-service', version: project.waterVersion
+	implementation group: 'it.water.core', name: 'Core-validation-javax', version: project.waterVersion
+
+	//Spring for spring source set
+	implementation 'org.springframework.boot:spring-boot-starter-aop:' + project.springBootVersion
+	implementation 'org.springframework.boot:spring-boot-starter-validation:' + project.springBootVersion
+	implementation group: 'javax.validation', name: 'validation-api', version: '2.0.1.Final'
+
+	implementation 'org.atteo.classindex:classindex:' + project.atteoClassIndexVersion
+	annotationProcessor('org.atteo.classindex:classindex:' + project.atteoClassIndexVersion)
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-test:' + project.springBootVersion
+	testImplementation 'org.junit.jupiter:junit-jupiter-api:' + project.junitJupiterVersion
+	testImplementation 'org.junit.jupiter:junit-jupiter-engine:' + project.junitJupiterVersion
+	testImplementation 'org.atteo.classindex:classindex:' + project.atteoClassIndexVersion
+	testAnnotationProcessor('org.atteo.classindex:classindex:' + project.atteoClassIndexVersion)
+	testAnnotationProcessor 'org.projectlombok:lombok:' + project.lombokVersion
+
+}
+
+test {
+	useJUnitPlatform()
+}
+
+/**
+ * Creates spring jar file -
+ * We use ShadowJar in order to merge all META-INF/annotations/it.water.base.interceptors.annotations.FrameworkComponent file
+ * This file is used by AtteoClassIndex in order to track all @FrameworkComponent classes avoiding class scanning which is slower.
+ * Atteo class index generates annotations file which needs to be merged collecting entries from all jars.*/
+task("springImplementationJar", type: ShadowJar) {
+	from sourceSets.main.output
+	archiveBaseName.set('Implementation-spring')
+	archiveClassifier.set('')
+	duplicatesStrategy = DuplicatesStrategy.INCLUDE
+	mergeServiceFiles {
+		path = '**/META-INF/annotations'
+	}
+}
+
+jar {
+	enabled false
+}
+
+jar.dependsOn(springImplementationJar)
+
+//publish configurations
+publishing {
+	publications {
+		spring(MavenPublication) {
+			artifact tasks.springImplementationJar
+			artifactId 'Implementation-spring'
+		}
+	}
+}
