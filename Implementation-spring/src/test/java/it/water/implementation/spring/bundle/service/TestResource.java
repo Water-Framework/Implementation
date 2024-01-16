@@ -16,10 +16,10 @@
 package it.water.implementation.spring.bundle.service;
 
 import it.water.core.api.model.Resource;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.validation.constraints.NotNull;
 
 public class TestResource implements Resource {
     @Getter

@@ -16,14 +16,14 @@
 package it.water.implementation.spring.bundle.service;
 
 import it.water.core.api.model.Resource;
-import it.water.implementation.spring.service.SpringBaseSystemServiceImpl;
+import it.water.core.service.BaseSystemServiceImpl;
 import org.springframework.stereotype.Component;
 
 /**
  * This class simulates a simples system service which operates on a resource
  */
 @Component
-public class SpringSystemServiceApi extends SpringBaseSystemServiceImpl {
+public class SpringSystemServiceApi extends BaseSystemServiceImpl {
     public void elaborateResource(Resource resource) {
         this.validate(resource);
         //do nothing

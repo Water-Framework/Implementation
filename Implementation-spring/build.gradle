@@ -27,12 +27,12 @@ dependencies {
 	implementation group: 'it.water.core', name: 'Core-registry', version: project.waterVersion
 	implementation group: 'it.water.core', name: 'Core-security', version: project.waterVersion
 	implementation group: 'it.water.core', name: 'Core-service', version: project.waterVersion
-	implementation group: 'it.water.core', name: 'Core-validation-javax', version: project.waterVersion
+	implementation group: 'it.water.core', name: 'Core-validation', version: project.waterVersion
 
 	//Spring for spring source set
 	implementation 'org.springframework.boot:spring-boot-starter-aop:' + project.springBootVersion
 	implementation 'org.springframework.boot:spring-boot-starter-validation:' + project.springBootVersion
-	implementation group: 'javax.validation', name: 'validation-api', version: '2.0.1.Final'
+	implementation group: 'jakarta.validation', name: 'jakarta.validation-api', version: project.jakartaValidationVersion
 
 	implementation 'org.atteo.classindex:classindex:' + project.atteoClassIndexVersion
 	annotationProcessor('org.atteo.classindex:classindex:' + project.atteoClassIndexVersion)
