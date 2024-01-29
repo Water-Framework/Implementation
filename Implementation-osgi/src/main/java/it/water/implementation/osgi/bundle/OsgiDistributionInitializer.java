@@ -45,6 +45,7 @@ public class OsgiDistributionInitializer<T> extends RuntimeInitializer<T, Servic
         this.setupApplicationProperties();
         this.startFrameworkComponents();
         this.startInterceptors(bundleContext);
+        this.initializeResourcePermissionsAndActions();
         this.startRestApis();
         log.debug("Water Core Activation Completed!");
     }
