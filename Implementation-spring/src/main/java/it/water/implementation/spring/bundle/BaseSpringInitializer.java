@@ -25,17 +25,33 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.PostConstruct;
 
 
 /**
  * @Author Aristide Cittadino.
  */
+@Service
 public class BaseSpringInitializer<T> extends RuntimeInitializer<T, String> {
     private static final Logger log = LoggerFactory.getLogger(BaseSpringInitializer.class);
     private ComponentRegistry componentRegistry;
     //run initialization just once
     private static boolean started = false;
 
+    @PostConstruct
+    public void componentStartup() {
+        this.applicationStartup(null);
+    }
+
+    /**
+     * Method will be run only once.
+     * We support the application context refreshed event and component initialization.
+     * At the time of writing there's no need to execut this method multiple times
+     *
+     * @param event
+     */
     @EventListener
     public synchronized void applicationStartup(ContextRefreshedEvent event) {
         if (!started) {
