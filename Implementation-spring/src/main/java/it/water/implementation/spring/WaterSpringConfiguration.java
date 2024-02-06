@@ -35,6 +35,9 @@ public class WaterSpringConfiguration {
 
     private static BaseSpringInitializer<Object> instance;
 
+    private WaterSpringConfiguration() {
+    }
+
     public static BaseSpringInitializer<Object> getInstance() {
         if (instance == null)
             instance = new BaseSpringInitializer<>();
@@ -42,7 +45,7 @@ public class WaterSpringConfiguration {
     }
 
     @Bean
-    public BaseSpringInitializer<Object> waterBaseSpringInitializer() {
+    public static BaseSpringInitializer<Object> waterBaseSpringInitializer() {
         return getInstance();
     }
 }
