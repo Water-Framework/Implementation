@@ -33,17 +33,22 @@ import org.springframework.context.event.EventListener;
 public class BaseSpringInitializer<T> extends RuntimeInitializer<T, String> {
     private static final Logger log = LoggerFactory.getLogger(BaseSpringInitializer.class);
     private ComponentRegistry componentRegistry;
+    //run initialization just once
+    private static boolean started = false;
 
     @EventListener
-    public void applicationStartup(ContextRefreshedEvent event) {
-        log.info("################# Starting Water Framework #################");
-        log.debug("Registering components....");
-        this.initializeFrameworkComponents(false, false);
-        log.debug("Setting up actions and permissions....");
-        this.initializeResourcePermissionsAndActions();
-        log.debug("Registering rest APIs....");
-        this.initializeRestApis();
-        log.debug("################# Water Framework Application Setup Complete! #################");
+    public synchronized void applicationStartup(ContextRefreshedEvent event) {
+        if (!started) {
+            log.info("################# Starting Water Framework #################");
+            log.debug("Registering components....");
+            this.initializeFrameworkComponents(false, false);
+            log.debug("Setting up actions and permissions....");
+            this.initializeResourcePermissionsAndActions();
+            log.debug("Registering rest APIs....");
+            this.initializeRestApis();
+            log.debug("################# Water Framework Application Setup Complete! #################");
+            started = true;
+        }
     }
 
     /**
