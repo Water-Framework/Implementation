@@ -24,6 +24,7 @@ import it.water.core.api.registry.filter.ComponentFilter;
 import it.water.core.api.registry.filter.ComponentFilterBuilder;
 import it.water.core.registry.model.exception.NoComponentRegistryFoundException;
 import it.water.implementation.spring.util.filter.SpringComponentFilterBuilder;
+import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.PropertyValues;
@@ -32,7 +33,6 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.ApplicationContext;
-import org.springframework.stereotype.Service;
 
 import java.util.*;
 
@@ -41,15 +41,14 @@ import java.util.*;
  * @Author Aristide Cittadino.
  * No need to register as component since the base initializer do it automatically.
  */
-@Service
 public class SpringComponentRegistry implements ComponentRegistry {
     private Logger log = LoggerFactory.getLogger(SpringComponentRegistry.class);
+    @Setter
     private ApplicationContext applicationContext;
     private ConfigurableListableBeanFactory configurableBeanFactory;
     public static final SpringComponentFilterBuilder componentFilterBuilder = new SpringComponentFilterBuilder();
 
-    public SpringComponentRegistry(ApplicationContext applicationContext, ConfigurableListableBeanFactory configurableBeanFactory) {
-        this.applicationContext = applicationContext;
+    public SpringComponentRegistry(ConfigurableListableBeanFactory configurableBeanFactory) {
         this.configurableBeanFactory = configurableBeanFactory;
     }
 
@@ -150,4 +149,5 @@ public class SpringComponentRegistry implements ComponentRegistry {
         c[0] = Character.toLowerCase(c[0]);
         return new String(c);
     }
+
 }

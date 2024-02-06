@@ -22,7 +22,7 @@ import it.water.core.api.registry.filter.ComponentFilterBuilder;
 import it.water.core.interceptors.annotations.FrameworkComponent;
 import it.water.core.registry.filter.ComponentDefaultPropertyFilter;
 
-@FrameworkComponent(services = {ComponentFilterBuilder.class})
+@FrameworkComponent
 public class SpringComponentFilterBuilder implements ComponentFilterBuilder {
     public static final SpringComponentFilterImplementation SPRING_COMPONENT_FILTER_IMPLEMENTATION = new SpringComponentFilterImplementation();
 

@@ -20,44 +20,54 @@ package it.water.implementation.spring.bundle;
 import it.water.core.api.bundle.Runtime;
 import it.water.core.api.registry.ComponentRegistry;
 import it.water.core.bundle.RuntimeInitializer;
+import it.water.implementation.spring.registry.SpringComponentRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-
 
 /**
  * @Author Aristide Cittadino.
+ * This class intializes springboot application with 2 different phases:
+ * 1. Post Processor Bean Factory: in this phase only framework components are loaded. This happens because @Autowired fields are checked after this phase.
+ * In order to make @FrameworkComponents working in spring environment we need to laode before the @Autowired checks. With this approach
+ * @FrameworkComponents are injectable with @Autowired annotation.
+ * 2. Context Refresh Event: after all components are loaded the final step is to load permissions,actions and eventually rest apis
  */
 @Service
-public class BaseSpringInitializer<T> extends RuntimeInitializer<T, String> {
+public class BaseSpringInitializer<T> extends RuntimeInitializer<T, String> implements BeanFactoryPostProcessor {
     private static final Logger log = LoggerFactory.getLogger(BaseSpringInitializer.class);
-    private ComponentRegistry componentRegistry;
+    private SpringComponentRegistry componentRegistry;
     //run initialization just once
     private static boolean started = false;
+    private static boolean initialized = false;
 
-    @PostConstruct
-    public void componentStartup() {
-        this.applicationStartup(null);
+    @Override
+    public synchronized void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+        if (!initialized) {
+            log.debug("Registering components....");
+            this.componentRegistry = new SpringComponentRegistry(beanFactory);
+            this.initializeFrameworkComponents(true, false);
+            initialized = true;
+        }
     }
 
     /**
      * Method will be run only once.
      * We support the application context refreshed event and component initialization.
      * At the time of writing there's no need to execut this method multiple times
-     *
-     * @param event
      */
     @EventListener
     public synchronized void applicationStartup(ContextRefreshedEvent event) {
         if (!started) {
+            //forcing setting application context
+            this.componentRegistry.setApplicationContext(event.getApplicationContext());
             log.info("################# Starting Water Framework #################");
-            log.debug("Registering components....");
-            this.initializeFrameworkComponents(false, false);
             log.debug("Setting up actions and permissions....");
             this.initializeResourcePermissionsAndActions();
             log.debug("Registering rest APIs....");
@@ -80,10 +90,5 @@ public class BaseSpringInitializer<T> extends RuntimeInitializer<T, String> {
     @Override
     protected Runtime getRuntime() {
         return new SpringRuntime();
-    }
-
-    @Autowired
-    public void setComponentRegistry(ComponentRegistry componentRegistry) {
-        this.componentRegistry = componentRegistry;
     }
 }

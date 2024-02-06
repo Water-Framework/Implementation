@@ -65,7 +65,6 @@ class SpringApplicationTest {
     ServiceSample serviceTest;
     @Autowired
     ApplicationProperties waterApplicationProperties;
-
     @Autowired
     SpringSystemServiceApi springSystemServiceApi;
 
