@@ -27,14 +27,23 @@ import java.util.Set;
  * @Author Aristide Cittadino
  * Using a global component to map security context inside
  */
-public abstract class SpringSecurityContext extends WaterAbstractSecurityContext {
+public class SpringSecurityContext extends WaterAbstractSecurityContext {
 
-    protected SpringSecurityContext(Set<Principal> loggedPrincipals) {
+    public SpringSecurityContext(Set<Principal> loggedPrincipals) {
         super(loggedPrincipals);
     }
 
-    protected SpringSecurityContext(Set<Principal> loggedPrincipals, String permissionImplementation) {
+    public SpringSecurityContext(Set<Principal> loggedPrincipals, String permissionImplementation) {
         super(loggedPrincipals, permissionImplementation);
     }
 
+    @Override
+    public boolean isSecure() {
+        return false;
+    }
+
+    @Override
+    public String getAuthenticationScheme() {
+        return "default";
+    }
 }

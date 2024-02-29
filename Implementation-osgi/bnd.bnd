@@ -13,6 +13,7 @@ Import-Package: \
     jakarta.validation,\
     jakarta.validation.*
 Export-Package: \
-    it.water.*
+    it.water.core.*,\
+    it.water.implementation.osgi.*
 DynamicImport-Package: *
 -fixupmessages "Classes found in the wrong directory"; restrict:=error; is:=warning

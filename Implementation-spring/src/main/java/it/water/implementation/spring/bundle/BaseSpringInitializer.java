@@ -17,7 +17,6 @@
 
 package it.water.implementation.spring.bundle;
 
-import it.water.core.api.bundle.Runtime;
 import it.water.core.api.registry.ComponentRegistry;
 import it.water.core.bundle.RuntimeInitializer;
 import it.water.implementation.spring.registry.SpringComponentRegistry;
@@ -52,7 +51,7 @@ public class BaseSpringInitializer<T> extends RuntimeInitializer<T, String> impl
         if (!initialized) {
             log.debug("Registering components....");
             this.componentRegistry = new SpringComponentRegistry(beanFactory);
-            this.initializeFrameworkComponents(true, false);
+            this.initializeFrameworkComponents(true);
             initialized = true;
         }
     }
@@ -85,10 +84,5 @@ public class BaseSpringInitializer<T> extends RuntimeInitializer<T, String> impl
     @Override
     public ComponentRegistry getComponentRegistry() {
         return this.componentRegistry;
-    }
-
-    @Override
-    protected Runtime getRuntime() {
-        return new SpringRuntime();
     }
 }
