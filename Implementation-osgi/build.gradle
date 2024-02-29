@@ -43,7 +43,6 @@ dependencies {
 
     testImplementation group: "it.water.osgi.test.bundle", name: "Water-osgi-test-bundle", version: project.waterVersion
     testImplementation group: "org.apache.karaf.itests", name: "common", version: project.karafVersion
-    testImplementation group: "org.apache.karaf.itests", name: "common", version: project.karafVersion
     testImplementation group: "org.apache.karaf", name: "apache-karaf", version: project.karafVersion
     testImplementation group: "org.apache.karaf.shell", name: "org.apache.karaf.shell.core", version: project.karafVersion
     testImplementation group: "org.ops4j.pax.exam", name: "pax-exam-container-karaf", version: project.paxExamVersion
