@@ -18,6 +18,7 @@ package it.water.implementation.osgi.bundle;
 
 import it.water.core.api.bundle.ApplicationProperties;
 import it.water.core.api.registry.ComponentConfiguration;
+import it.water.core.api.registry.ComponentRegistry;
 import it.water.core.api.service.rest.RestApiManager;
 import it.water.core.bundle.RuntimeInitializer;
 import it.water.core.registry.model.ComponentConfigurationFactory;
@@ -25,12 +26,24 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.framework.wiring.BundleWiring;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class WaterBundleActivator<T> extends RuntimeInitializer<T, ServiceRegistration<T>> implements org.osgi.framework.BundleActivator {
+/**
+ * @param <T>
+ * @Author Aristide Cittadino
+ * Generic Bundle Activator that can be used for modules which must be deployed inside OSGi container.
+ */
+public class WaterBundleActivator<T> extends RuntimeInitializer<T, ServiceRegistration<T>> implements org.osgi.framework.BundleActivator {
     private static final Logger log = LoggerFactory.getLogger(WaterBundleActivator.class);
-    boolean newRuntime;
+
+    //Boolean used only to register a bundle which intialize the whole framework - Core module
+    //For any other module it should be kept false
+    private boolean newRuntime;
+
+    //Using bundle context to retrieve the current class loader
+    private BundleContext bundleContext;
 
     /**
      * Only one bundle should have a bundle activator with newRuntime = true.
@@ -42,16 +55,21 @@ public abstract class WaterBundleActivator<T> extends RuntimeInitializer<T, Serv
         this.newRuntime = newRuntime;
     }
 
-    protected WaterBundleActivator() {
+    public WaterBundleActivator() {
         this(false);
     }
 
     @Override
     public void start(BundleContext bundleContext) throws Exception {
+        this.bundleContext = bundleContext;
         log.debug("Starting {} ...", bundleContext.getBundle().getSymbolicName());
+        //loading application properties
         this.setupApplicationProperties();
+        //loading @FrameworkComponents
         this.startFrameworkComponents();
+        //Initializing permissions
         this.initializeResourcePermissionsAndActions();
+        //Register rest api if any
         this.startRestApis();
         log.debug(" Bundle {} \" - Activation Completed!\"", bundleContext.getBundle().getSymbolicName());
     }
@@ -59,12 +77,28 @@ public abstract class WaterBundleActivator<T> extends RuntimeInitializer<T, Serv
     @Override
     public void stop(BundleContext bundleContext) throws Exception {
         log.debug("Stopping Base OSGi activator...");
+        //Stop rest apis if any
         stopRestApis();
         log.debug("Unregistering framework components...");
         unregisterFrameworkComponents();
-
+        this.bundleContext = null;
     }
 
+    /**
+     * Retrieves component registry from the OSGi context
+     *
+     * @return
+     */
+    @Override
+    protected ComponentRegistry getComponentRegistry() {
+        BundleContext ctx = FrameworkUtil.getBundle(this.getClass()).getBundleContext();
+        ServiceReference<ComponentRegistry> sr = ctx.getServiceReference(ComponentRegistry.class);
+        return ctx.getService(sr);
+    }
+
+    /**
+     * Creates a new application properties component, reading property file.
+     */
     protected void setupApplicationProperties() {
         ApplicationProperties waterApplicationProperties = new OsgiApplicationProperties();
         ComponentConfiguration configuration = ComponentConfigurationFactory.createNewComponentPropertyFactory().build();
@@ -72,9 +106,12 @@ public abstract class WaterBundleActivator<T> extends RuntimeInitializer<T, Serv
         this.getComponentRegistry().registerComponent(ApplicationProperties.class, waterApplicationProperties, configuration);
     }
 
+    /**
+     * Loads @FrameworkComponent. newRuntime is false, and it should be kept false.
+     */
     protected void startFrameworkComponents() {
         ClassLoader tccl = Thread.currentThread().getContextClassLoader();
-        Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
+        Thread.currentThread().setContextClassLoader(this.getCurrentClassLoader());
         try {
             this.initializeFrameworkComponents(newRuntime);
         } finally {
@@ -82,11 +119,17 @@ public abstract class WaterBundleActivator<T> extends RuntimeInitializer<T, Serv
         }
     }
 
+    /**
+     * Loading rest APIs
+     */
     protected void startRestApis() {
         log.debug("Registering rest apis...");
         this.initializeRestApis();
     }
 
+    /**
+     * Stops Rest APIs
+     */
     protected void stopRestApis() {
         BundleContext ctx = FrameworkUtil.getBundle(this.getClass()).getBundleContext();
         ServiceReference<RestApiManager> restApiManagerServiceReference = ctx.getServiceReference(RestApiManager.class);
@@ -100,6 +143,9 @@ public abstract class WaterBundleActivator<T> extends RuntimeInitializer<T, Serv
         }
     }
 
+    /**
+     * Unregister @FrameworkComponents
+     */
     protected void unregisterFrameworkComponents() {
         getRegisteredServices().forEach(registeredService -> {
             try {
@@ -112,4 +158,8 @@ public abstract class WaterBundleActivator<T> extends RuntimeInitializer<T, Serv
         });
     }
 
+    @Override
+    protected ClassLoader getCurrentClassLoader() {
+        return bundleContext.getBundle().adapt(BundleWiring.class).getClassLoader();
+    }
 }
