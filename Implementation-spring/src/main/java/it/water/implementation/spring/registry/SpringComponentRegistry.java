@@ -79,7 +79,7 @@ public class SpringComponentRegistry implements ComponentRegistry {
                 .setLazyInit(false)
                 .setScope(BeanDefinition.SCOPE_SINGLETON);
         beanDefinitionBuilder.getRawBeanDefinition().setInstanceSupplier(() -> component);
-
+        beanDefinitionBuilder.setPrimary(configuration.isPrimary());
         //Adding all configured bean properties to the bean definition
         configuration.getConfiguration().forEach((name, value) -> beanDefinitionBuilder.addPropertyValue(name.toString(), value));
         beanDefinitionRegistry.registerBeanDefinition(beanName, beanDefinitionBuilder.getBeanDefinition());

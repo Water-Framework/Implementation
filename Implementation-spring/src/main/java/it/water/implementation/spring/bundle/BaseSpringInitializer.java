@@ -85,4 +85,13 @@ public class BaseSpringInitializer<T> extends RuntimeInitializer<T, String> impl
     public ComponentRegistry getComponentRegistry() {
         return this.componentRegistry;
     }
+
+    /**
+     * Spring needs just to register one bean then the spring registry will register one instance per implemented interface.
+     * @return
+     */
+    @Override
+    protected boolean registerMultiInterfaceComponents() {
+        return false;
+    }
 }

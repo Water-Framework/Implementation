@@ -50,19 +50,6 @@ dependencies {
     testImplementation group: "org.ops4j.pax.exam", name: "pax-exam", version: project.paxExamVersion
 }
 
-/**
- * Task for creating osgi bundle ready to be deployed in osgi container.
- * It creates manifest file from bnd.
- */
-tasks.register("osgiBundle", Bundle) {
-    from sourceSets.main.output
-    bndfile = file("bnd.bnd")
-    sourceSet = sourceSets.main
-    classpath = sourceSets.main.compileClasspath
-}
-
-jar.dependsOn(osgiBundle)
-
 //publish configurations
 publishing {
     publications {
