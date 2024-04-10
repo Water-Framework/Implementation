@@ -26,7 +26,6 @@ import org.osgi.framework.hooks.service.FindHook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
  * @Author Aristide Cittadino.
  */
