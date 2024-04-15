@@ -95,18 +95,39 @@ public class OsgiComponentRegistry implements ComponentRegistry {
     @Override
     public <T, K> ComponentRegistration<T, K> registerComponent(Class<? extends T> componentClass, T component, ComponentConfiguration configuration) {
         BundleContext context = getBundleContext(component.getClass());
-        if(configuration == null) {
+        if (configuration == null) {
             configuration = ComponentConfigurationFactory.createNewComponentPropertyFactory().build();
         }
         //in OSGi priority is added as a property
         //default priority is 1
         configuration.addProperty(PRIORITY, configuration.getPriority());
-        ServiceRegistration<T> registration = (ServiceRegistration<T>) context.registerService(componentClass.getName(), component, configuration.getConfigurationAsDictionary());
+        //adding inferred classes to the registration so they can be read at runtime from osgi properties.
+        String[] componentClassesNames = calculateComponentClasses(componentClass, component);
+        ServiceRegistration<T> registration = (ServiceRegistration<T>) context.registerService(componentClassesNames, component, configuration.getConfigurationAsDictionary());
         ComponentRegistration<T, ServiceRegistration<T>> componentRegistration = new OsgiComponentRegistration<>(componentClass, registration);
         //registrations are associated with specific classes of each component
         registrations.put(component.getClass(), registration);
         return (ComponentRegistration<T, K>) componentRegistration;
     }
+
+    private <T> String[] calculateComponentClasses(Class<? extends T> componentClass, T component) {
+        Set<String> componentClassesNames = new HashSet<>();
+        componentClassesNames.add(componentClass.getName());
+        //get recursive interfaces exposed by the whole hierarchy using the concrete class
+        //in order to find other interfaces not directly exposed
+        getRecursiveInterfaces(component.getClass(),componentClassesNames);
+        return componentClassesNames.toArray(new String[componentClassesNames.size()]);
+    }
+
+    private void getRecursiveInterfaces(Class<?> currentClass,Set<String> componentClassesNames){
+        for (Class<?> anInterface : currentClass.getInterfaces()) {
+            componentClassesNames.add(anInterface.getName());
+        }
+        Class<?> superClass = currentClass.getSuperclass();
+        if(superClass != null)
+            getRecursiveInterfaces(superClass,componentClassesNames);
+    }
+
 
     @Override
     public boolean unregisterComponent(ComponentRegistration registration) {
