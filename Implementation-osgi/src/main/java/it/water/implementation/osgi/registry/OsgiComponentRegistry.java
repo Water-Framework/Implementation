@@ -22,10 +22,12 @@ import it.water.core.api.registry.ComponentRegistration;
 import it.water.core.api.registry.ComponentRegistry;
 import it.water.core.api.registry.filter.ComponentFilter;
 import it.water.core.api.registry.filter.ComponentFilterBuilder;
+import it.water.core.api.service.Service;
 import it.water.core.model.exceptions.WaterRuntimeException;
 import it.water.core.registry.model.ComponentConfigurationFactory;
 import it.water.core.registry.model.exception.NoComponentRegistryFoundException;
 import it.water.implementation.osgi.interceptors.OsgiServiceInterceptor;
+import it.water.implementation.osgi.util.OSGiUtil;
 import it.water.implementation.osgi.util.filter.OSGiComponentFilterBuilder;
 import org.osgi.framework.*;
 import org.slf4j.Logger;
@@ -103,7 +105,13 @@ public class OsgiComponentRegistry implements ComponentRegistry {
         configuration.addProperty(PRIORITY, configuration.getPriority());
         //adding inferred classes to the registration so they can be read at runtime from osgi properties.
         String[] componentClassesNames = calculateComponentClasses(componentClass, component);
-        ServiceRegistration<T> registration = (ServiceRegistration<T>) context.registerService(componentClassesNames, component, configuration.getConfigurationAsDictionary());
+        ServiceRegistration<T> registration = null;
+        //if the current instance implements directly or indirectly water service interface, registry will automatically register a proxy instance
+        if (OSGiUtil.isWaterService(componentClassesNames, false, component)) {
+            registration = (ServiceRegistration<T>) OSGiUtil.registerProxyService(context.getBundle(), componentClassesNames, configuration.getConfigurationAsDictionary(), component.getClass().getClassLoader(), (Service) component, this);
+        } else {
+            registration = (ServiceRegistration<T>) context.registerService(componentClassesNames, component, configuration.getConfigurationAsDictionary());
+        }
         ComponentRegistration<T, ServiceRegistration<T>> componentRegistration = new OsgiComponentRegistration<>(componentClass, registration);
         //registrations are associated with specific classes of each component
         registrations.put(component.getClass(), registration);
@@ -115,19 +123,15 @@ public class OsgiComponentRegistry implements ComponentRegistry {
         componentClassesNames.add(componentClass.getName());
         //get recursive interfaces exposed by the whole hierarchy using the concrete class
         //in order to find other interfaces not directly exposed
-        getRecursiveInterfaces(component.getClass(),componentClassesNames);
+        getRecursiveInterfaces(component.getClass(), componentClassesNames);
         return componentClassesNames.toArray(new String[componentClassesNames.size()]);
     }
 
-    private void getRecursiveInterfaces(Class<?> currentClass,Set<String> componentClassesNames){
+    private void getRecursiveInterfaces(Class<?> currentClass, Set<String> componentClassesNames) {
         for (Class<?> anInterface : currentClass.getInterfaces()) {
             componentClassesNames.add(anInterface.getName());
         }
-        Class<?> superClass = currentClass.getSuperclass();
-        if(superClass != null)
-            getRecursiveInterfaces(superClass,componentClassesNames);
     }
-
 
     @Override
     public boolean unregisterComponent(ComponentRegistration registration) {
@@ -138,12 +142,8 @@ public class OsgiComponentRegistry implements ComponentRegistry {
     public <T> boolean unregisterComponent(Class<T> componentClass, T component) {
         //retrieving registration for specific component class which is the implementation class
         Class<?> classToFind = component.getClass();
-
         if (Proxy.isProxyClass(classToFind) && Proxy.getInvocationHandler(component) instanceof OsgiServiceInterceptor) {
-            OsgiServiceInterceptor<?> waterOSGiServiceProxy = ((OsgiServiceInterceptor) Proxy.getInvocationHandler(component));
             classToFind = ((OsgiServiceInterceptor) Proxy.getInvocationHandler(component)).getOriginalConcreteClass();
-            //removing the proxy registration
-            waterOSGiServiceProxy.getRegistration().unregister();
         }
         //removing normal components
         if (registrations.containsKey(classToFind)) {

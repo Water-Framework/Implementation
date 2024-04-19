@@ -32,8 +32,10 @@ import it.water.implementation.osgi.util.filter.OSGiComponentFilterBuilder;
 import org.apache.karaf.features.FeaturesService;
 import org.apache.karaf.itests.KarafTestSupport;
 import org.junit.Assert;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.MethodSorters;
 import org.ops4j.pax.exam.Option;
 import org.ops4j.pax.exam.junit.PaxExam;
 import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
@@ -43,6 +45,7 @@ import java.util.List;
 
 @RunWith(PaxExam.class)
 @ExamReactorStrategy(PerSuite.class)
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class WaterFrameworkOSGiTest extends KarafTestSupport {
 
     //force global configuration
@@ -52,7 +55,7 @@ public class WaterFrameworkOSGiTest extends KarafTestSupport {
     }
 
     @Test
-    public void waterFrameworkShouldBeInstalled() {
+    public void test000_waterFrameworkShouldBeInstalled() {
         // assert on an available service
         assertServiceAvailable(FeaturesService.class, 0);
         String features = executeCommand("feature:list -i");
@@ -68,7 +71,7 @@ public class WaterFrameworkOSGiTest extends KarafTestSupport {
      * So if it is <> null then interceptors works correctly, generically.
      */
     @Test
-    public void testComponentRegistration() {
+    public void test001_testComponentRegistration() {
         ComponentRegistry registry = getOsgiService(ComponentRegistry.class);
         ResourceSystemApi resourceSystemApi = getOsgiService(ResourceSystemApi.class);
         WaterComponentsInjector injector = getOsgiService(WaterComponentsInjector.class);
@@ -84,7 +87,7 @@ public class WaterFrameworkOSGiTest extends KarafTestSupport {
      * So if it is <> null then interceptors works correctly, generically.
      */
     @Test
-    public void testInterceptors() {
+    public void test002_testInterceptors() {
         ResourceSystemApi systemService = getOsgiService(ResourceSystemApi.class);
         Assert.assertNotNull(systemService.getComponentRegistry());
     }
@@ -93,7 +96,7 @@ public class WaterFrameworkOSGiTest extends KarafTestSupport {
      * This test checks wether the component registry orders or not all registered componente using the component registry
      */
     @Test
-    public void testPriority() {
+    public void test003_testPriority() {
         ComponentRegistry waterComponentRegistry = getOsgiService(ComponentRegistry.class);
         List<ServiceInterface> services = waterComponentRegistry.findComponents(ServiceInterface.class, null);
         Assert.assertEquals(4, services.size());
@@ -106,14 +109,14 @@ public class WaterFrameworkOSGiTest extends KarafTestSupport {
     }
 
     @Test
-    public void checkLoadedProperties() {
+    public void test004_checkLoadedProperties() {
         ApplicationProperties waterApplicationProperties = getOsgiService(ApplicationProperties.class);
         Assert.assertNotNull(waterApplicationProperties);
         Assert.assertEquals("true", waterApplicationProperties.getProperty(PropertiesNames.HYPERIOT_TEST_MODE));
     }
 
     @Test
-    public void testComponentFilter() {
+    public void test005_testComponentFilter() {
         OSGiComponentFilterBuilder componentFilterBuilder = new OSGiComponentFilterBuilder();
         ComponentRegistry waterComponentRegistry = getOsgiService(ComponentRegistry.class);
         ComponentFilter filter = componentFilterBuilder.createFilter("filter", "value");
@@ -130,7 +133,7 @@ public class WaterFrameworkOSGiTest extends KarafTestSupport {
     }
 
     @Test
-    public void testEntityValidation() {
+    public void test006_testEntityValidation() {
         String maliutiousField = "<script>alert('ciao')</script>";
         TestResource testResource = new TestResource();
         testResource.setField1(maliutiousField);
@@ -147,7 +150,7 @@ public class WaterFrameworkOSGiTest extends KarafTestSupport {
     }
 
     @Test
-    public void testComponentRegistry() {
+    public void test007_testComponentRegistry() {
         ServiceInterface customComponent = new ServiceInterfaceImpl2();
         ComponentRegistry waterComponentRegistry = getOsgiService(ComponentRegistry.class);
         ComponentRegistration<ServiceInterface, String> registration = waterComponentRegistry.registerComponent(ServiceInterface.class, customComponent, ComponentConfigurationFactory.createNewComponentPropertyFactory().withPriority(4).build());
