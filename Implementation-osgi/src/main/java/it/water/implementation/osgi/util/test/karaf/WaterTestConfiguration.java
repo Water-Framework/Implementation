@@ -114,6 +114,11 @@ public class WaterTestConfiguration {
         return append(debugConfig);
     }
 
+    public WaterTestConfiguration withHttpPort(String httpPort) {
+        this.httpPort = httpPort;
+        return this;
+    }
+
     public WaterTestConfiguration keepRuntime() {
         Option opt = KarafDistributionOption.keepRuntimeFolder();
         return append(new Option[]{opt});
@@ -191,6 +196,9 @@ public class WaterTestConfiguration {
                         .unpackDirectory(new File("target/exam"))
                         .useDeployFolder(false)
         };
+        Option[] httpPortOption = new Option[]{editConfigurationFilePut("etc/org.ops4j.pax.web.cfg", "org.osgi.service.http.port",
+                httpPort)};
+        append(httpPortOption);
         append(distributionOption);
         append(configureVmOptions());
         return this.options;
@@ -266,8 +274,6 @@ public class WaterTestConfiguration {
                         .version(this.karafVersion),
                 editConfigurationFilePut("etc/it.water.cfg",
                         "it.water.testMode", "true"),
-                editConfigurationFilePut("etc/org.ops4j.pax.web.cfg", "org.osgi.service.http.port",
-                        httpPort),
                 editConfigurationFilePut("etc/org.apache.karaf.management.cfg", "rmiRegistryPort",
                         rmiRegistryPort),
                 editConfigurationFilePut("etc/org.apache.karaf.management.cfg", "rmiServerPort",
