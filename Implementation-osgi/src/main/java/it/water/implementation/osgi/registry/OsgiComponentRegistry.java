@@ -17,6 +17,8 @@
 
 package it.water.implementation.osgi.registry;
 
+import it.water.core.api.interceptors.OnActivate;
+import it.water.core.api.interceptors.OnDeactivate;
 import it.water.core.api.registry.ComponentConfiguration;
 import it.water.core.api.registry.ComponentRegistration;
 import it.water.core.api.registry.ComponentRegistry;
@@ -62,7 +64,7 @@ public class OsgiComponentRegistry implements ComponentRegistry {
     @Override
     public <T> T findComponent(Class<T> componentClass, ComponentFilter filter) {
         List<T> components = findComponents(componentClass, filter);
-        if (!components.isEmpty()) {
+        if (components != null && !components.isEmpty()) {
             if (components.size() > 1)
                 log.warn("Multiple components found for type: {}, returning the one with highest priority ", componentClass.getName());
             return components.get(0);
@@ -91,6 +93,10 @@ public class OsgiComponentRegistry implements ComponentRegistry {
             return orderedServiceReferences.stream().map(bundleContext::getService).collect(Collectors.toList());
         } catch (InvalidSyntaxException e) {
             throw new WaterRuntimeException(e.getMessage());
+        } catch (Exception e) {
+            log.error("Unknown error while trying to find component {},please check exported and imported packages!", componentClass.getName());
+            log.error(e.getMessage(), e);
+            return null;
         }
     }
 
@@ -112,6 +118,8 @@ public class OsgiComponentRegistry implements ComponentRegistry {
         } else {
             registration = (ServiceRegistration<T>) context.registerService(componentClassesNames, component, configuration.getConfigurationAsDictionary());
         }
+
+        this.invokeLifecycleMethod(OnActivate.class, component.getClass(), context.getService(registration.getReference()));
         ComponentRegistration<T, ServiceRegistration<T>> componentRegistration = new OsgiComponentRegistration<>(componentClass, registration);
         //registrations are associated with specific classes of each component
         registrations.put(component.getClass(), registration);
@@ -151,6 +159,7 @@ public class OsgiComponentRegistry implements ComponentRegistry {
             registrations.remove(classToFind);
             return true;
         }
+        this.invokeLifecycleMethod(OnDeactivate.class, classToFind, component);
         return false;
     }
 
