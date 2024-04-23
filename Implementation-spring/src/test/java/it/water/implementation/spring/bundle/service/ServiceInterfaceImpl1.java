@@ -15,6 +15,7 @@
  */
 package it.water.implementation.spring.bundle.service;
 
+import it.water.core.api.interceptors.OnActivate;
 import it.water.core.interceptors.annotations.FrameworkComponent;
 import it.water.implementation.spring.bundle.api.ServiceInterface;
 
@@ -23,6 +24,12 @@ import it.water.implementation.spring.bundle.api.ServiceInterface;
  */
 @FrameworkComponent(services = ServiceInterface.class)
 public class ServiceInterfaceImpl1 implements ServiceInterface {
+
+    @OnActivate
+    public void activation(){
+        System.out.println("Activation!");
+    }
+
     @Override
     public String doThing() {
         return "done";

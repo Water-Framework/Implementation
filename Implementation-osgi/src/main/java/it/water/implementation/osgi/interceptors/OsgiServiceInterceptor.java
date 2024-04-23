@@ -39,7 +39,6 @@ import java.lang.reflect.Method;
 public class OsgiServiceInterceptor<S extends Service> extends WaterAbstractInterceptor<S> implements InvocationHandler, Serializable {
     private static Logger log = LoggerFactory.getLogger(OsgiServiceInterceptor.class.getName());
     private transient ServiceRegistration<S> registration;
-
     @Getter
     private transient ComponentRegistry componentRegistry;
 

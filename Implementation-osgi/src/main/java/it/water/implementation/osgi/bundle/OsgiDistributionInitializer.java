@@ -38,6 +38,8 @@ public class OsgiDistributionInitializer<T> extends WaterBundleActivator<T> {
 
     @Override
     public void start(BundleContext bundleContext) throws Exception {
+        //loading application properties only in the main component
+        this.setupApplicationProperties();
         super.start(bundleContext);
         log.info("Starting interceptors...");
         this.startInterceptors(bundleContext);

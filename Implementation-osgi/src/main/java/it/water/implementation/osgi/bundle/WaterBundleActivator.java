@@ -63,8 +63,6 @@ public class WaterBundleActivator<T> extends RuntimeInitializer<T, ServiceRegist
     public void start(BundleContext bundleContext) throws Exception {
         this.bundleContext = bundleContext;
         log.debug("Starting {} ...", bundleContext.getBundle().getSymbolicName());
-        //loading application properties
-        this.setupApplicationProperties();
         //loading @FrameworkComponents
         this.startFrameworkComponents();
         //Initializing permissions
@@ -142,6 +140,7 @@ public class WaterBundleActivator<T> extends RuntimeInitializer<T, ServiceRegist
             }
         }
     }
+
 
     /**
      * Unregister @FrameworkComponents
