@@ -60,14 +60,13 @@ public class WaterTestConfiguration {
     private String distributionArtifactId;
     private String distributionVersion;
     private String distributionRepo;
-
     private String httpPort;
     private String rmiRegistryPort;
     private String rmiServerPort;
     private String sshPort;
     private String waterRuntimeTestVersion;
     private String karafVersion;
-
+    private boolean enabledJwtFilter = false;
     private Option[] options;
 
     public WaterTestConfiguration(String karafVersion, String waterRuntimeTestVersion, String testSuiteName) {
@@ -116,6 +115,11 @@ public class WaterTestConfiguration {
 
     public WaterTestConfiguration withHttpPort(String httpPort) {
         this.httpPort = httpPort;
+        return this;
+    }
+
+    public WaterTestConfiguration withJwtFilterEnabled(boolean value){
+        this.enabledJwtFilter = value;
         return this;
     }
 
@@ -196,9 +200,13 @@ public class WaterTestConfiguration {
                         .unpackDirectory(new File("target/exam"))
                         .useDeployFolder(false)
         };
-        Option[] httpPortOption = new Option[]{editConfigurationFilePut("etc/org.ops4j.pax.web.cfg", "org.osgi.service.http.port",
-                httpPort)};
-        append(httpPortOption);
+
+        Option[] dynamicOptions = new Option[]{
+                editConfigurationFilePut("etc/org.ops4j.pax.web.cfg", "org.osgi.service.http.port", httpPort),
+                editConfigurationFilePut("etc/it.water.application.cfg", "water.rest.security.jwt.validate", String.valueOf(enabledJwtFilter)),
+        };
+
+        append(dynamicOptions);
         append(distributionOption);
         append(configureVmOptions());
         return this.options;
@@ -272,7 +280,7 @@ public class WaterTestConfiguration {
                 // Setting test mode ON
                 mavenBundle().groupId("org.apache.karaf.itests").artifactId("common")
                         .version(this.karafVersion),
-                editConfigurationFilePut("etc/it.water.cfg",
+                editConfigurationFilePut("etc/it.water.application.cfg",
                         "it.water.testMode", "true"),
                 editConfigurationFilePut("etc/org.apache.karaf.management.cfg", "rmiRegistryPort",
                         rmiRegistryPort),
