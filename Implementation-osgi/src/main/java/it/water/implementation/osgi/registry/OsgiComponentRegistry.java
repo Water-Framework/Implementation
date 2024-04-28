@@ -17,7 +17,6 @@
 
 package it.water.implementation.osgi.registry;
 
-import it.water.core.api.interceptors.OnActivate;
 import it.water.core.api.interceptors.OnDeactivate;
 import it.water.core.api.registry.ComponentConfiguration;
 import it.water.core.api.registry.ComponentRegistration;
@@ -118,8 +117,6 @@ public class OsgiComponentRegistry implements ComponentRegistry {
         } else {
             registration = (ServiceRegistration<T>) context.registerService(componentClassesNames, component, configuration.getConfigurationAsDictionary());
         }
-
-        this.invokeLifecycleMethod(OnActivate.class, component.getClass(), context.getService(registration.getReference()));
         ComponentRegistration<T, ServiceRegistration<T>> componentRegistration = new OsgiComponentRegistration<>(componentClass, registration);
         //registrations are associated with specific classes of each component
         registrations.put(component.getClass(), registration);

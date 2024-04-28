@@ -17,7 +17,6 @@
 
 package it.water.implementation.spring.registry;
 
-import it.water.core.api.interceptors.OnActivate;
 import it.water.core.api.interceptors.OnDeactivate;
 import it.water.core.api.registry.ComponentConfiguration;
 import it.water.core.api.registry.ComponentRegistration;
@@ -86,7 +85,6 @@ public class SpringComponentRegistry implements ComponentRegistry {
         configuration.getConfiguration().forEach((name, value) -> beanDefinitionBuilder.addPropertyValue(name.toString(), value));
         beanDefinitionRegistry.registerBeanDefinition(beanName, beanDefinitionBuilder.getBeanDefinition());
         ComponentRegistration<T, String> registration = new SpringComponentRegistration<>(componentClass, beanName, component);
-        this.invokeLifecycleMethod(OnActivate.class,component.getClass(),registration.getComponent());
         return (ComponentRegistration<T, K>) registration;
     }
 
@@ -94,7 +92,7 @@ public class SpringComponentRegistry implements ComponentRegistry {
     public <T> boolean unregisterComponent(ComponentRegistration<T, ?> registration) {
         SpringComponentRegistration<String> springComponentRegistration = (SpringComponentRegistration) registration;
         removeBean(springComponentRegistration.getRegistration(), (T) springComponentRegistration.getComponent());
-        this.invokeLifecycleMethod(OnDeactivate.class,registration.getRegistrationClass(),registration.getComponent());
+        this.invokeLifecycleMethod(OnDeactivate.class, registration.getRegistrationClass(), registration.getComponent());
         return true;
     }
 
@@ -104,7 +102,7 @@ public class SpringComponentRegistry implements ComponentRegistry {
         Optional<String> componentOptional = components.keySet().stream().filter(key -> components.get(key).equals(component)).findAny();
         if (componentOptional.isPresent() && configurableBeanFactory.containsBean(componentOptional.get())) {
             removeBean(componentOptional.get(), component);
-            this.invokeLifecycleMethod(OnDeactivate.class,component.getClass(),component);
+            this.invokeLifecycleMethod(OnDeactivate.class, component.getClass(), component);
             return true;
         }
         return false;

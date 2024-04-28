@@ -65,6 +65,8 @@ public class WaterBundleActivator<T> extends RuntimeInitializer<T, ServiceRegist
         log.debug("Starting {} ...", bundleContext.getBundle().getSymbolicName());
         //loading @FrameworkComponents
         this.startFrameworkComponents();
+        //running onActivate Methods
+        this.activateComponents();
         //Initializing permissions
         this.initializeResourcePermissionsAndActions();
         //Register rest api if any

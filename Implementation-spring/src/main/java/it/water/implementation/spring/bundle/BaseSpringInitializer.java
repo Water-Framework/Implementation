@@ -66,6 +66,7 @@ public class BaseSpringInitializer<T> extends RuntimeInitializer<T, String> impl
         if (!started) {
             //forcing setting application context
             this.componentRegistry.setApplicationContext(event.getApplicationContext());
+            this.activateComponents();
             log.info("################# Starting Water Framework #################");
             log.debug("Setting up actions and permissions....");
             this.initializeResourcePermissionsAndActions();
