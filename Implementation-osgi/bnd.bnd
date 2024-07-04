@@ -8,7 +8,6 @@ Import-Package: \
     org.slf4j.*,\
     org.hibernate.validator;version='${range;[=,+)}',\
     org.hibernate.validator.*;version='${range;[=,+)}',\
-    org.hibernate.annotations;version='[5,6)',\
     javassist.util.proxy,\
     jakarta.validation,\
     jakarta.validation.*

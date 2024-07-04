@@ -14,8 +14,8 @@ dependencies {
 	//Jackson
 	implementation group: 'com.fasterxml.jackson.jaxrs', name: 'jackson-jaxrs-json-provider', version: project.jacksonVersion
 	//Persistence
-	implementation group: 'javax.persistence', name: 'javax.persistence-api', version: project.javaxPersistenceVersion
-	implementation group: 'javax.transaction', name: 'javax.transaction-api', version: project.javaxTransactionApiVersion
+	implementation group: 'jakarta.persistence', name: 'jakarta.persistence-api', version: project.jakartaPersistenceVersion
+	implementation group: 'jakarta.transaction', name: 'jakarta.transaction-api', version: project.jakartaTransactionApiVersion
 	//Encryption
 	implementation group: 'org.bouncycastle', name: 'bcmail-jdk15on', version: project.bouncyCastleVersion
 
@@ -27,11 +27,11 @@ dependencies {
 	implementation group: 'it.water.core', name: 'Core-registry', version: project.waterVersion
 	implementation group: 'it.water.core', name: 'Core-security', version: project.waterVersion
 	implementation group: 'it.water.core', name: 'Core-service', version: project.waterVersion
-	implementation group: 'it.water.core', name: 'Core-validation-javax', version: project.waterVersion
+	implementation group: 'it.water.core', name: 'Core-validation', version: project.waterVersion
 
 	//Spring for spring source set
 	implementation group: 'org.springframework.boot', name:'spring-boot-starter-aop', version: project.springBootVersion
-	implementation group: 'javax.validation', name: 'validation-api', version: project.javaxValidationVersion
+	implementation group: 'jakarta.validation', name: 'jakarta.validation-api', version: project.jakartaValidationVersion
 
 	implementation 'org.atteo.classindex:classindex:' + project.atteoClassIndexVersion
 	annotationProcessor('org.atteo.classindex:classindex:' + project.atteoClassIndexVersion)

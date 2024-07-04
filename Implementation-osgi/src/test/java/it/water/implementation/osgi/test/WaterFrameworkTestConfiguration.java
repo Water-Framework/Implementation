@@ -27,6 +27,7 @@ public class WaterFrameworkTestConfiguration implements ConfigurationFactory {
         return WaterTestConfigurationBuilder.createStandardConfiguration()
                 .withCodeCoverage("it.water.implementation.osgi.*")
                 .withDebug("5005", false)
+                .keepRuntime()
                 .build();
     }
 }
