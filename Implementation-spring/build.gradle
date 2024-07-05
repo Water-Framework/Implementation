@@ -7,12 +7,9 @@ plugins {
 dependencies {
 	//SLF4J
 	implementation group: 'org.slf4j', name: 'slf4j-api', version: project.slf4jVersion
-	implementation group: "javax.ws.rs", name: "javax.ws.rs-api", version: project.jaxWsRsApiVersion
 	//lombok
 	implementation group: 'org.projectlombok', name: 'lombok', version: project.lombokVersion
 	annotationProcessor 'org.projectlombok:lombok:' + project.lombokVersion
-	//Jackson
-	implementation group: 'com.fasterxml.jackson.jaxrs', name: 'jackson-jaxrs-json-provider', version: project.jacksonVersion
 	//Persistence
 	implementation group: 'jakarta.persistence', name: 'jakarta.persistence-api', version: project.jakartaPersistenceVersion
 	implementation group: 'jakarta.transaction', name: 'jakarta.transaction-api', version: project.jakartaTransactionApiVersion

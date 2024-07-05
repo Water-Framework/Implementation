@@ -10,15 +10,13 @@ dependencies {
     //lombok
     implementation group: 'org.projectlombok', name: 'lombok', version: project.lombokVersion
     annotationProcessor 'org.projectlombok:lombok:' + project.lombokVersion
-    //Jackson
-    implementation group: 'com.fasterxml.jackson.jaxrs', name: 'jackson-jaxrs-json-provider', version: project.jacksonVersion
     //Encryption
     implementation group: 'org.bouncycastle', name: 'bcmail-jdk15on', version: project.bouncyCastleVersion
     implementation group: 'com.nimbusds', name: 'nimbus-jose-jwt', version: project.nimbusJoseJwtVersion
     //OSGi
     implementation group: "org.osgi", name: "osgi.core", version: project.osgiVersion
     implementation group: "org.osgi", name: "osgi.cmpn", version: project.osgiCompendiumVersion
-    implementation group: 'javax.xml.ws', name: 'jaxws-api', version: '2.3.1'
+
     //Validation
     implementation group: 'jakarta.validation', name: 'jakarta.validation-api', version: project.jakartaValidationVersion
     implementation group: "org.hibernate", name: "hibernate-validator", version: project.hibernateValidatorVersion
