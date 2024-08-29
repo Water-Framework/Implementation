@@ -23,8 +23,10 @@ import it.water.core.api.registry.ComponentRegistration;
 import it.water.core.api.registry.ComponentRegistry;
 import it.water.core.api.registry.filter.ComponentFilter;
 import it.water.core.api.registry.filter.ComponentFilterBuilder;
+import it.water.core.api.service.BaseEntitySystemApi;
 import it.water.core.api.service.Service;
 import it.water.core.model.exceptions.WaterRuntimeException;
+import it.water.core.registry.AbstractComponentRegistry;
 import it.water.core.registry.model.ComponentConfigurationFactory;
 import it.water.core.registry.model.exception.NoComponentRegistryFoundException;
 import it.water.implementation.osgi.interceptors.OsgiServiceInterceptor;
@@ -43,7 +45,7 @@ import java.util.stream.Collectors;
  * @Author Aristide Cittadino
  * No need to register as component since the base initializer do it automatically.
  */
-public class OsgiComponentRegistry implements ComponentRegistry {
+public class OsgiComponentRegistry extends AbstractComponentRegistry implements ComponentRegistry {
     private static final Logger log = LoggerFactory.getLogger(OsgiComponentRegistry.class);
     private static final String PRIORITY = "it.water.component.priority";
     public static final OSGiComponentFilterBuilder componentFilterBuilder = new OSGiComponentFilterBuilder();
@@ -163,6 +165,32 @@ public class OsgiComponentRegistry implements ComponentRegistry {
     @Override
     public ComponentFilterBuilder getComponentFilterBuilder() {
         return componentFilterBuilder;
+    }
+
+
+    @Override
+    public <T extends BaseEntitySystemApi> T findEntitySystemApi(String entityClassName) {
+        try {
+            BundleContext ctx = getBundleContext(OsgiComponentRegistry.class);
+            ServiceReference[] services = ctx.getServiceReferences((String) null, "(" + OSGiUtil.WATER_OSGI_PROPS_PROXY + "=true)");
+            Optional<?> serviceOpt = Arrays.stream(services).map(serviceRef -> ctx.getService(serviceRef)).filter(service -> {
+                Class<?>[] interfaces = service.getClass().getInterfaces();
+                return Arrays.stream(interfaces).anyMatch(curInterface -> {
+                    if (BaseEntitySystemApi.class.isAssignableFrom(curInterface)) {
+                        BaseEntitySystemApi baseEntitySystemApi = (BaseEntitySystemApi) service;
+                        return baseEntitySystemApi.getEntityType().getName().equals(entityClassName);
+                    }
+                    return false;
+                });
+            }).findAny();
+
+            if (serviceOpt.isPresent()) {
+                return (T) serviceOpt.get();
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+        return null;
     }
 
     private <T> BundleContext getBundleContext(Class<T> componentClass) {

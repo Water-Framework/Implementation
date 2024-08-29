@@ -23,6 +23,8 @@ import it.water.core.api.registry.ComponentRegistration;
 import it.water.core.api.registry.ComponentRegistry;
 import it.water.core.api.registry.filter.ComponentFilter;
 import it.water.core.api.registry.filter.ComponentFilterBuilder;
+import it.water.core.api.service.BaseEntitySystemApi;
+import it.water.core.registry.AbstractComponentRegistry;
 import it.water.core.registry.model.exception.NoComponentRegistryFoundException;
 import it.water.implementation.spring.util.filter.SpringComponentFilterBuilder;
 import lombok.Setter;
@@ -42,7 +44,7 @@ import java.util.*;
  * @Author Aristide Cittadino.
  * No need to register as component since the base initializer do it automatically.
  */
-public class SpringComponentRegistry implements ComponentRegistry {
+public class SpringComponentRegistry extends AbstractComponentRegistry implements ComponentRegistry {
     private Logger log = LoggerFactory.getLogger(SpringComponentRegistry.class);
     @Setter
     private ApplicationContext applicationContext;
@@ -111,6 +113,16 @@ public class SpringComponentRegistry implements ComponentRegistry {
     @Override
     public ComponentFilterBuilder getComponentFilterBuilder() {
         return componentFilterBuilder;
+    }
+
+    @Override
+    public <T extends BaseEntitySystemApi> T findEntitySystemApi(String entityClassName) {
+        Map<String, BaseEntitySystemApi> services = applicationContext.getBeansOfType(BaseEntitySystemApi.class);
+        Optional<BaseEntitySystemApi> optService = services.values().stream().filter(service -> service.getEntityType().getName().equals(entityClassName)).findAny();
+        if (optService.isPresent()) {
+            return (T) optService.get();
+        }
+        return null;
     }
 
     public ApplicationContext getApplicationContext() {
