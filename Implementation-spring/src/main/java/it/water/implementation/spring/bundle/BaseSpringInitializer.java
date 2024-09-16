@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
@@ -59,10 +59,10 @@ public class BaseSpringInitializer<T> extends RuntimeInitializer<T, String> impl
     /**
      * Method will be run only once.
      * We support the application context refreshed event and component initialization.
-     * At the time of writing there's no need to execut this method multiple times
+     * At the time of writing there's no need to execute this method multiple times
      */
     @EventListener
-    public synchronized void applicationStartup(ContextRefreshedEvent event) {
+    public synchronized void applicationStartup(ApplicationReadyEvent event) {
         if (!started) {
             //forcing setting application context
             this.componentRegistry.setApplicationContext(event.getApplicationContext());
@@ -89,6 +89,7 @@ public class BaseSpringInitializer<T> extends RuntimeInitializer<T, String> impl
 
     /**
      * Spring needs just to register one bean then the spring registry will register one instance per implemented interface.
+     *
      * @return
      */
     @Override
