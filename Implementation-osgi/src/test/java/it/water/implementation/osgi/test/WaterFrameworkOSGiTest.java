@@ -51,6 +51,7 @@ import java.io.File;
 import java.security.Principal;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 
 @RunWith(PaxExam.class)
@@ -178,6 +179,7 @@ public class WaterFrameworkOSGiTest extends KarafTestSupport {
         Assert.assertFalse(osgiSecurityContext.isSecure());
         osgiSecurityContext = new OsgiSecurityContext(principals, "customImplementation");
         Assert.assertFalse(osgiSecurityContext.isSecure());
+        Assert.assertEquals("default",osgiSecurityContext.getAuthenticationScheme());
     }
 
     @Test
@@ -185,5 +187,22 @@ public class WaterFrameworkOSGiTest extends KarafTestSupport {
         ComponentRegistry componentRegistry = getOsgiService(ComponentRegistry.class);
         Service s = componentRegistry.findEntitySystemApi("not-tested-here");
         Assert.assertNull(s);
+    }
+
+    @Test
+    public void test011_testUnloadProperties(){
+        ComponentRegistry componentRegistry = getOsgiService(ComponentRegistry.class);
+        ApplicationProperties applicationProperties = componentRegistry.findComponent(ApplicationProperties.class, null);
+        Properties propertiesToUnload = new Properties();
+        propertiesToUnload.put("water.testMode","false");
+        applicationProperties.unloadProperties(propertiesToUnload);
+        Assert.assertFalse(applicationProperties.containsKey("water.testMode"));
+    }
+
+    @Test
+    public void test012_testApplicationConfiguration(){
+        OsgiApplicationConfiguration applicationConfiguration = new OsgiApplicationConfiguration();
+        applicationConfiguration.start();
+        Assert.assertTrue(applicationConfiguration.getConfiguration().size() > 0);
     }
 }
