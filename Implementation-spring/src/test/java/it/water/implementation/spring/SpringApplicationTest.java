@@ -23,10 +23,12 @@ import it.water.core.api.registry.filter.ComponentFilter;
 import it.water.core.bundle.PropertiesNames;
 import it.water.core.model.exceptions.ValidationException;
 import it.water.core.registry.model.ComponentConfigurationFactory;
+import it.water.core.security.model.principal.UserPrincipal;
 import it.water.implementation.spring.annotations.EnableWaterFramework;
 import it.water.implementation.spring.bundle.api.ServiceInterface;
 import it.water.implementation.spring.bundle.service.*;
 import it.water.implementation.spring.interceptors.SpringServiceInterceptor;
+import it.water.implementation.spring.security.SpringSecurityContext;
 import it.water.implementation.spring.util.filter.SpringComponentFilterBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.MethodOrderer;
@@ -40,8 +42,11 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.File;
+import java.security.Principal;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -153,5 +158,16 @@ class SpringApplicationTest {
         Assertions.assertThrows(UnsupportedOperationException.class, () -> this.waterApplicationProperties.loadProperties(customProps2));
         Assertions.assertThrows(UnsupportedOperationException.class, () -> this.waterApplicationProperties.unloadProperties(customPropFile));
         Assertions.assertThrows(UnsupportedOperationException.class, () -> this.waterApplicationProperties.unloadProperties(customProps2));
+    }
+
+    @Test
+    void testSpringSecurityContext() {
+        Set<Principal> principals = new HashSet<>();
+        principals.add(new UserPrincipal("user", false, 1, "entity"));
+        SpringSecurityContext springSecurityContext = new SpringSecurityContext(principals);
+        Assertions.assertFalse(springSecurityContext.isSecure());
+        Assertions.assertEquals("default", springSecurityContext.getAuthenticationScheme());
+        SpringSecurityContext springSecurityContext1 = new SpringSecurityContext(principals, "customImplementation");
+        Assertions.assertNotNull(springSecurityContext1);
     }
 }

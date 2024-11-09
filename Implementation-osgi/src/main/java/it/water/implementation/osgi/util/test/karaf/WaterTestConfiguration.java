@@ -19,6 +19,7 @@ package it.water.implementation.osgi.util.test.karaf;
 
 import org.apache.karaf.itests.KarafTestSupport;
 import org.ops4j.pax.exam.Option;
+import org.ops4j.pax.exam.karaf.options.KarafDistributionConfigurationFileExtendOption;
 import org.ops4j.pax.exam.karaf.options.KarafDistributionOption;
 import org.ops4j.pax.exam.karaf.options.LogLevelOption;
 import org.ops4j.pax.exam.options.MavenArtifactUrlReference;
@@ -118,7 +119,7 @@ public class WaterTestConfiguration {
         return this;
     }
 
-    public WaterTestConfiguration withJwtFilterEnabled(boolean value){
+    public WaterTestConfiguration withJwtFilterEnabled(boolean value) {
         this.enabledJwtFilter = value;
         return this;
     }
@@ -161,7 +162,12 @@ public class WaterTestConfiguration {
                 sb.append(":");
             sb.append(packageStr);
         });
-        return append(new Option[]{createCodeCoverageOption(this.testSuiteName, sb.toString(), this.codeCoverageReportPath, this.codeCoverageClassesPath)});
+        Option coverage = createCodeCoverageOption(this.testSuiteName, sb.toString(), this.codeCoverageReportPath, this.codeCoverageClassesPath);
+        //needed to find coverage on classes invoked by interfaces
+        KarafDistributionConfigurationFileExtendOption jacocoOpts = new KarafDistributionConfigurationFileExtendOption("etc/config.properties","org.osgi.framework.bootdelegation","org.jacoco.agent.rt");
+        KarafDistributionConfigurationFileExtendOption jacocoOpts1 = new KarafDistributionConfigurationFileExtendOption("etc/config.properties","org.osgi.framework.bootdelegation","org.jacoco.agent.rt.*");
+        return append(new Option[]{jacocoOpts,jacocoOpts1,coverage});
+
     }
 
     public WaterTestConfiguration withXms(String xms) {

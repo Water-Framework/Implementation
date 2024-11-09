@@ -18,6 +18,7 @@
 package it.water.implementation.spring;
 
 import it.water.implementation.spring.bundle.BaseSpringInitializer;
+import lombok.NoArgsConstructor;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.annotation.Bean;
@@ -31,6 +32,7 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 @ConfigurationPropertiesScan("it.water.implementation.spring.*")
 @EnableAspectJAutoProxy
 @EnableAutoConfiguration
+@NoArgsConstructor
 public class WaterSpringConfiguration {
 
     private static BaseSpringInitializer<Object> instance;

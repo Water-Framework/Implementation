@@ -38,7 +38,6 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Proxy;
 import java.util.*;
-import java.util.stream.Collectors;
 
 
 /**
@@ -91,7 +90,7 @@ public class OsgiComponentRegistry extends AbstractComponentRegistry implements 
                     return 0;
                 return 1;
             });
-            return orderedServiceReferences.stream().map(bundleContext::getService).collect(Collectors.toList());
+            return orderedServiceReferences.stream().map(bundleContext::getService).toList();
         } catch (InvalidSyntaxException e) {
             throw new WaterRuntimeException(e.getMessage());
         } catch (Exception e) {
@@ -149,8 +148,8 @@ public class OsgiComponentRegistry extends AbstractComponentRegistry implements 
     public <T> boolean unregisterComponent(Class<T> componentClass, T component) {
         //retrieving registration for specific component class which is the implementation class
         Class<?> classToFind = component.getClass();
-        if (Proxy.isProxyClass(classToFind) && Proxy.getInvocationHandler(component) instanceof OsgiServiceInterceptor) {
-            classToFind = ((OsgiServiceInterceptor) Proxy.getInvocationHandler(component)).getOriginalConcreteClass();
+        if (Proxy.isProxyClass(classToFind) && Proxy.getInvocationHandler(component) instanceof OsgiServiceInterceptor<?> osgiServiceInterceptor) {
+            classToFind = osgiServiceInterceptor.getOriginalConcreteClass();
         }
         //removing normal components
         if (registrations.containsKey(classToFind)) {
@@ -172,12 +171,12 @@ public class OsgiComponentRegistry extends AbstractComponentRegistry implements 
     public <T extends BaseEntitySystemApi> T findEntitySystemApi(String entityClassName) {
         try {
             BundleContext ctx = getBundleContext(OsgiComponentRegistry.class);
-            ServiceReference[] services = ctx.getServiceReferences((String) null, "(" + OSGiUtil.WATER_OSGI_PROPS_PROXY + "=true)");
-            Optional<?> serviceOpt = Arrays.stream(services).map(serviceRef -> ctx.getService(serviceRef)).filter(service -> {
+            ServiceReference<?>[] services = ctx.getServiceReferences((String) null, "(" + OSGiUtil.WATER_OSGI_PROPS_PROXY + "=true)");
+            Optional<?> serviceOpt = Arrays.stream(services).map(ctx::getService).filter(service -> {
                 Class<?>[] interfaces = service.getClass().getInterfaces();
                 return Arrays.stream(interfaces).anyMatch(curInterface -> {
                     if (BaseEntitySystemApi.class.isAssignableFrom(curInterface)) {
-                        BaseEntitySystemApi baseEntitySystemApi = (BaseEntitySystemApi) service;
+                        BaseEntitySystemApi<?> baseEntitySystemApi = (BaseEntitySystemApi<?>) service;
                         return baseEntitySystemApi.getEntityType().getName().equals(entityClassName);
                     }
                     return false;

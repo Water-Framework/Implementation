@@ -43,7 +43,7 @@ public class SpringApplicationProperties implements ApplicationProperties {
     }
 
     @Override
-    public Object containsKey(String key) {
+    public boolean containsKey(String key) {
         return environment.containsProperty(key);
     }
 

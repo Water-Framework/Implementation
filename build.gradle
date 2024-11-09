@@ -1,3 +1,7 @@
+plugins {
+    id("org.sonarqube") version "5.1.0.4882"
+}
+
 allprojects {
     project.ext.publishRepoName = "public-water-repository"
     project.ext.publishRepoUrl = "https://nexus.acsoftware.it/nexus/repository/maven-water/"
@@ -26,6 +30,7 @@ allprojects {
     apply plugin: 'java'
     apply plugin: 'maven-publish'
     apply plugin: 'jacoco'
+    apply plugin: 'org.sonarqube'
 
     publishing {
         repositories {
@@ -42,4 +47,46 @@ allprojects {
         }
     }
 
+    test {
+        finalizedBy jacocoTestReport
+    }
+}
+
+sonarqube {
+    properties {
+        // Configurazione globale del progetto Sonar
+        property "sonar.projectKey", "water.Implementation"
+        property "sonar.projectName", "Implementation"
+        property "sonar.projectVersion", project.waterVersion
+
+        // Includes all folder and sources for submodules
+        property "sonar.sources", fileTree(dir: '.', include: '**/src/main/java').asPath
+        property "sonar.tests", fileTree(dir: '.', include: '**/src/test/java').asPath
+        property "sonar.java.binaries", fileTree(dir: '.', include: '**/build/classes').asPath
+        property "sonar.test.exclusions", fileTree(dir: '.', include: '**/src/test/java')
+
+        // Global path for jacoco report
+        property "sonar.coverage.jacoco.xmlReportPaths", [file("${buildDir}/reports/jacoco/jacocoRootReport.xml"),file("Implementation-osgi/build/reports/jacoco/jacocoTestReport.xml")]
+
+        property "sonar.host.url", System.getProperty("sonar.host.url", "default")
+        property "sonar.login", System.getProperty("sonar.login", "default")
+    }
+}
+
+task jacocoRootReport(type: JacocoReport) {
+    dependsOn subprojects.test
+    additionalSourceDirs.setFrom(files(subprojects.sourceSets.main.allSource.srcDirs))
+    classDirectories.setFrom(
+            files(subprojects.collect { project ->
+                fileTree(dir: "${project.buildDir}/classes/java/main").exclude("**/src/test/java/**")
+            })
+    )
+    executionData.setFrom(fileTree(project.rootDir.absolutePath).include("**/build/jacoco/test.exec"))
+    reports {
+        xml.required = true
+        html.required = true
+        csv.required = false
+        xml.destination file("${buildDir}/reports/jacoco/jacocoRootReport.xml")
+        html.destination file("${buildDir}/reports/jacoco/jacocoRootReport.html")
+    }
 }

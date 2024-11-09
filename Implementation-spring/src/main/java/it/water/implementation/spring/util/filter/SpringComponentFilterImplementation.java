@@ -17,39 +17,14 @@
 
 package it.water.implementation.spring.util.filter;
 
-import it.water.core.api.registry.filter.ComponentFilterAndCondition;
-import it.water.core.api.registry.filter.ComponentFilterOrCondition;
-import it.water.core.api.registry.filter.ComponentPropertyFilter;
 import it.water.core.api.registry.filter.FilterImplementation;
+import it.water.core.registry.filter.ComponentAbstractFilter;
 
 
 /**
  * @Author Aristide Cittadino
  * Component filter implementation for osgi
  */
-public class SpringComponentFilterImplementation implements FilterImplementation {
-    @Override
-    public String transform(ComponentFilterAndCondition andCondition) {
-        String filterCondition = "(&" + andCondition.getFirst().getFilter() + andCondition.getSecond().getFilter() + ")";
-        if (!andCondition.isNot())
-            return filterCondition;
-        else
-            return "(!" + filterCondition + ")";
-    }
+public class SpringComponentFilterImplementation extends ComponentAbstractFilter implements FilterImplementation {
 
-    @Override
-    public String transform(ComponentFilterOrCondition orCondition) {
-        String filterCondition = "(|" + orCondition.getFirst().getFilter() + orCondition.getSecond().getFilter() + ")";
-        if (!orCondition.isNot())
-            return filterCondition;
-        else
-            return "(!" + filterCondition + ")";
-    }
-
-    @Override
-    public String transform(ComponentPropertyFilter propertyFilter) {
-        String filterCondition = "(" + propertyFilter.getName() + "=" + propertyFilter.getValue() + ")";
-        if (!propertyFilter.isNot()) return filterCondition;
-        else return "(!" + filterCondition + ")";
-    }
 }

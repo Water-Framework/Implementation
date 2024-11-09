@@ -27,14 +27,23 @@ import java.util.Set;
  * @Author Aristide Cittadino
  * Using a global component to map security context inside
  */
-public abstract class OsgiSecurityContext extends WaterAbstractSecurityContext {
+public class OsgiSecurityContext extends WaterAbstractSecurityContext {
 
-    protected OsgiSecurityContext(Set<Principal> loggedPrincipals) {
+    public OsgiSecurityContext(Set<Principal> loggedPrincipals) {
         super(loggedPrincipals);
     }
 
-    protected OsgiSecurityContext(Set<Principal> loggedPrincipals, String permissionImplementation) {
+    public OsgiSecurityContext(Set<Principal> loggedPrincipals, String permissionImplementation) {
         super(loggedPrincipals, permissionImplementation);
     }
 
+    @Override
+    public boolean isSecure() {
+        return false;
+    }
+
+    @Override
+    public String getAuthenticationScheme() {
+        return "default";
+    }
 }

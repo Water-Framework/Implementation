@@ -17,13 +17,19 @@
 package it.water.implementation.osgi.test;
 
 import it.water.core.api.bundle.ApplicationProperties;
+import it.water.core.api.registry.ApplicationConfiguration;
 import it.water.core.api.registry.ComponentRegistration;
 import it.water.core.api.registry.ComponentRegistry;
 import it.water.core.api.registry.filter.ComponentFilter;
+import it.water.core.api.registry.filter.ComponentFilterBuilder;
+import it.water.core.api.service.Service;
 import it.water.core.bundle.PropertiesNames;
 import it.water.core.interceptors.annotations.implementation.WaterComponentsInjector;
 import it.water.core.model.exceptions.ValidationException;
 import it.water.core.registry.model.ComponentConfigurationFactory;
+import it.water.core.security.model.principal.UserPrincipal;
+import it.water.implementation.osgi.registry.OsgiApplicationConfiguration;
+import it.water.implementation.osgi.security.OsgiSecurityContext;
 import it.water.implementation.osgi.test.bundle.ResourceSystemApi;
 import it.water.implementation.osgi.test.bundle.ServiceInterface;
 import it.water.implementation.osgi.test.bundle.ServiceInterfaceImpl2;
@@ -41,7 +47,11 @@ import org.ops4j.pax.exam.junit.PaxExam;
 import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
 import org.ops4j.pax.exam.spi.reactors.PerSuite;
 
+import java.io.File;
+import java.security.Principal;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @RunWith(PaxExam.class)
 @ExamReactorStrategy(PerSuite.class)
@@ -158,5 +168,22 @@ public class WaterFrameworkOSGiTest extends KarafTestSupport {
         Assert.assertNotNull(registration.getConfiguration());
         Assert.assertEquals(ServiceInterface.class, registration.getRegistrationClass());
         waterComponentRegistry.unregisterComponent(registration);
+    }
+
+    @Test
+    public void test009_testOsgiSecurityContext() {
+        Set<Principal> principals = new HashSet<>();
+        principals.add(new UserPrincipal("user", false, 1, "entity"));
+        OsgiSecurityContext osgiSecurityContext = new OsgiSecurityContext(principals);
+        Assert.assertFalse(osgiSecurityContext.isSecure());
+        osgiSecurityContext = new OsgiSecurityContext(principals, "customImplementation");
+        Assert.assertFalse(osgiSecurityContext.isSecure());
+    }
+
+    @Test
+    public void test010_testEntitySystemApi(){
+        ComponentRegistry componentRegistry = getOsgiService(ComponentRegistry.class);
+        Service s = componentRegistry.findEntitySystemApi("not-tested-here");
+        Assert.assertNull(s);
     }
 }

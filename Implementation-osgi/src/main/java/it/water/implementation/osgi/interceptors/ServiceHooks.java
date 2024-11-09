@@ -42,6 +42,7 @@ import static org.osgi.framework.ServiceEvent.*;
  */
 public class ServiceHooks implements EventListenerHook, FindHook {
     private static Logger log = LoggerFactory.getLogger(ServiceHooks.class.getName());
+    private static final String OBJECT_CLASS = "objectClass";
 
     private ComponentRegistry componentRegistry;
 
@@ -72,7 +73,7 @@ public class ServiceHooks implements EventListenerHook, FindHook {
                 Bundle bundle = serviceReference.getBundle();
                 if (bundle != null && isWaterService(serviceReference)) {
                     ServiceReference<S> wtfServiceRef = (ServiceReference<S>) serviceReference;
-                    String[] interfaces = (String[]) wtfServiceRef.getProperty("objectClass");
+                    String[] interfaces = (String[]) wtfServiceRef.getProperty(OBJECT_CLASS);
                     S service = bundle.getBundleContext().getService(wtfServiceRef);
                     OSGiUtil.registerProxyService(bundle, interfaces, properties, this.getClass().getClassLoader(), service, this.componentRegistry);
                 }
@@ -125,7 +126,7 @@ public class ServiceHooks implements EventListenerHook, FindHook {
                 //no bundle will receive updates from this one because it's not the proxied one
                 listeners.clear();
                 ServiceReference<Service> wtfServiceRef = (ServiceReference<Service>) event.getServiceReference();
-                String[] interfaces = (String[]) wtfServiceRef.getProperty("objectClass");
+                String[] interfaces = (String[]) wtfServiceRef.getProperty(OBJECT_CLASS);
                 switch (event.getType()) {
                     case REGISTERED: {
                         Service service = (Service) bundle.getBundleContext().getService(serviceReference);
@@ -138,8 +139,7 @@ public class ServiceHooks implements EventListenerHook, FindHook {
                         OSGiUtil.unregisterProxyService(bundle, serviceReference.getClass());
                         break;
                     }
-                    case MODIFIED:
-                    case MODIFIED_ENDMATCH: {
+                    case MODIFIED, MODIFIED_ENDMATCH: {
                         Service s = (Service) bundle.getBundleContext().getService(serviceReference);
                         OSGiUtil.unregisterProxyService(bundle, serviceReference.getClass());
                         if (s != null) {
@@ -162,7 +162,7 @@ public class ServiceHooks implements EventListenerHook, FindHook {
      * @return true if the service reference represents an Serivce
      */
     private boolean isWaterService(ServiceReference<?> sr) {
-        String[] interfaces = (String[]) sr.getProperty("objectClass");
+        String[] interfaces = (String[]) sr.getProperty(OBJECT_CLASS);
         boolean isProxy = OSGiUtil.isWaterServiceProxyInstance(sr);
         return OSGiUtil.isWaterService(interfaces, isProxy, null);
     }

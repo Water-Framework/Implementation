@@ -50,7 +50,7 @@ public class OsgiApplicationProperties implements ApplicationProperties {
     }
 
     @Override
-    public Object containsKey(String key) {
+    public boolean containsKey(String key) {
         return properties.containsKey(key);
     }
 

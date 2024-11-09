@@ -58,4 +58,16 @@ publishing {
     }
 }
 
+jacocoTestReport {
+    dependsOn test
+    executionData fileTree(dir: "${buildDir}/jacoco", include: "*.exec")
+
+    reports {
+        xml.required = true
+        xml.outputLocation = file("${buildDir}/reports/jacoco/jacocoTestReport.xml")
+        html.required = false
+        csv.required = false
+    }
+}
+
  
