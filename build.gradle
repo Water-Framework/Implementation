@@ -56,7 +56,7 @@ sonarqube {
     properties {
         // Configurazione globale del progetto Sonar
         property "sonar.projectKey", "water.Implementation"
-        property "sonar.projectName", "Implementation"
+        property "sonar.projectName", "water.Implementation"
         property "sonar.projectVersion", project.waterVersion
 
         // Includes all folder and sources for submodules
