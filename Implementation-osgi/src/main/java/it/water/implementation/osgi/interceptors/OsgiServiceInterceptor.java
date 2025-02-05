@@ -75,7 +75,8 @@ public class OsgiServiceInterceptor<S extends Service> extends WaterAbstractInte
             log.error(e.getMessage(), e);
             throw new IllegalAccessException("Error while intercept method call for: " + proxy.getClass().getName() + " " + method.getName());
         } catch (InvocationTargetException e) {
-            log.error("Invocation on proxy failed, please check exceptions!");
+            log.error("Invocation on proxy failed, please check exceptions class: {} method:{} ",method.getDeclaringClass().getName(),method.getName());
+            log.error(e.getMessage(), e);
             throw e.getTargetException();
         }
     }
