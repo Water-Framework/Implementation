@@ -46,7 +46,6 @@ import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
 import org.ops4j.pax.exam.spi.reactors.PerSuite;
 
 import java.io.File;
-import java.io.IOException;
 import java.security.Principal;
 import java.util.HashSet;
 import java.util.List;
@@ -199,6 +198,8 @@ public class WaterFrameworkOSGiTest extends KarafTestSupport {
         applicationProperties.unloadProperties(new File("etc/it.water.application"));
         applicationProperties.unloadProperties(new File("etc/not-existing-file"));
         applicationProperties.loadProperties(new File("etc/not-existing-file"));
+        Assert.assertFalse(applicationProperties.containsKey("not.existing.property"));
+        Assert.assertNull(applicationProperties.getProperty("not.existing.property"));
     }
 
     @Test
