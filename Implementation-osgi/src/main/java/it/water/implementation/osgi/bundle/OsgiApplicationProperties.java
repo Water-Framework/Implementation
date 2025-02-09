@@ -54,46 +54,34 @@ public class OsgiApplicationProperties implements ApplicationProperties {
 
     @Override
     public Object getProperty(String key) {
-        try {
-            if (containsKey(key))
-                return this.resolvePropertyValue(getConfigurationAdmin().getConfiguration(DEFAULT_CFG_PID).getProperties().get(key).toString());
-        } catch (IOException e) {
-            logger.error("Error while loading configuration", e);
-        }
+        if (containsKey(key))
+            return this.resolvePropertyValue(getConfigurationAdminProperties().get(key).toString());
         return null;
     }
 
     @Override
     public boolean containsKey(String key) {
-        try {
-            return getConfigurationAdmin().getConfiguration(DEFAULT_CFG_PID).getProperties().get(key) != null;
-        } catch (IOException e) {
-            logger.error("Error while loading configuration", e);
-        }
-        return false;
+        return getConfigurationAdminProperties().get(key) != null;
     }
 
     public void loadBundleProperties(BundleContext bundleContext) {
-        try {
-            URL cfgResource = bundleContext.getBundle().getResource(DEFAULT_PROPERTY_FILE);
-            if (cfgResource != null) {
-                Properties props = new Properties();
-                try (InputStream is = cfgResource.openStream()) {
-                    props.load(is);
-                }
-
-                //adding only properties not already defined
-                props.keySet().forEach(key -> {
-                    Object value = props.get(key);
-                    if (!this.properties.contains(key)) {
-                        this.properties.put(key, value);
-                    } else
-                        logger.warn("WATER PROPERTY CONFLICT! Key {} with value {} from module {}. will be discarded", key, value, bundleContext.getBundle().getSymbolicName());
-                });
-                updateOsgiConfigurationManager();
+        URL cfgResource = bundleContext.getBundle().getResource(DEFAULT_PROPERTY_FILE);
+        if (cfgResource != null) {
+            Properties props = new Properties();
+            try (InputStream is = cfgResource.openStream()) {
+                props.load(is);
+            } catch (IOException e) {
+                logger.error("Failed to load properties from " + cfgResource, e);
             }
-        } catch (IOException e) {
-            logger.error("Error loading application properties", e);
+            //adding only properties not already defined
+            props.keySet().forEach(key -> {
+                Object value = props.get(key);
+                if (!this.properties.contains(key)) {
+                    this.properties.put(key, value);
+                } else
+                    logger.warn("WATER PROPERTY CONFLICT! Key {} with value {} from module {}. will be discarded", key, value, bundleContext.getBundle().getSymbolicName());
+            });
+            updateOsgiConfigurationManager();
         }
     }
 
@@ -146,6 +134,15 @@ public class OsgiApplicationProperties implements ApplicationProperties {
     private ConfigurationAdmin getConfigurationAdmin() {
         BundleContext bundleContext = FrameworkUtil.getBundle(this.getClass()).getBundleContext();
         return bundleContext.getService(bundleContext.getServiceReference(ConfigurationAdmin.class));
+    }
+
+    private Dictionary<? extends Object, Object> getConfigurationAdminProperties() {
+        try {
+            return getConfigurationAdmin().getConfiguration(DEFAULT_CFG_PID).getProperties();
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+        return new Properties();
     }
 
     private void updateOsgiConfigurationManager() {
