@@ -119,6 +119,7 @@ public class OsgiApplicationProperties implements ApplicationProperties {
     @Override
     public void loadProperties(Properties props) {
         this.properties.putAll(props);
+        this.updateOsgiConfigurationManager();
     }
 
     @Override
@@ -130,6 +131,7 @@ public class OsgiApplicationProperties implements ApplicationProperties {
                 String key = it.next();
                 this.properties.remove(key);
             }
+            this.updateOsgiConfigurationManager();
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
@@ -149,9 +151,7 @@ public class OsgiApplicationProperties implements ApplicationProperties {
     private void updateOsgiConfigurationManager() {
         //Updating the whole it.water.application.cfg with all properties merged
         Dictionary<String, Object> dictionary = new Hashtable<>();
-        this.properties.forEach((key, value) -> {
-            dictionary.put(key.toString(), value);
-        });
+        this.properties.forEach((key, value) -> dictionary.put(key.toString(), value));
         try {
             Configuration configuration = getConfigurationAdmin().getConfiguration(DEFAULT_CFG_PID);
             //save config osgi

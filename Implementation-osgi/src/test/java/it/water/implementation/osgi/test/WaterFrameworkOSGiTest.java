@@ -17,11 +17,9 @@
 package it.water.implementation.osgi.test;
 
 import it.water.core.api.bundle.ApplicationProperties;
-import it.water.core.api.registry.ApplicationConfiguration;
 import it.water.core.api.registry.ComponentRegistration;
 import it.water.core.api.registry.ComponentRegistry;
 import it.water.core.api.registry.filter.ComponentFilter;
-import it.water.core.api.registry.filter.ComponentFilterBuilder;
 import it.water.core.api.service.Service;
 import it.water.core.bundle.PropertiesNames;
 import it.water.core.interceptors.annotations.implementation.WaterComponentsInjector;
@@ -179,30 +177,32 @@ public class WaterFrameworkOSGiTest extends KarafTestSupport {
         Assert.assertFalse(osgiSecurityContext.isSecure());
         osgiSecurityContext = new OsgiSecurityContext(principals, "customImplementation");
         Assert.assertFalse(osgiSecurityContext.isSecure());
-        Assert.assertEquals("default",osgiSecurityContext.getAuthenticationScheme());
+        Assert.assertEquals("default", osgiSecurityContext.getAuthenticationScheme());
     }
 
     @Test
-    public void test010_testEntitySystemApi(){
+    public void test010_testEntitySystemApi() {
         ComponentRegistry componentRegistry = getOsgiService(ComponentRegistry.class);
         Service s = componentRegistry.findEntitySystemApi("not-tested-here");
         Assert.assertNull(s);
     }
 
     @Test
-    public void test011_testUnloadProperties(){
+    public void test011_testUnloadProperties() {
         ComponentRegistry componentRegistry = getOsgiService(ComponentRegistry.class);
         ApplicationProperties applicationProperties = componentRegistry.findComponent(ApplicationProperties.class, null);
         Properties propertiesToUnload = new Properties();
-        propertiesToUnload.put("it.water.testMode","false");
+        propertiesToUnload.put("it.water.testMode", "false");
         applicationProperties.unloadProperties(propertiesToUnload);
         Assert.assertFalse(applicationProperties.containsKey("it.water.testMode"));
+        applicationProperties.unloadProperties(new File("etc/it.water.application"));
     }
 
     @Test
-    public void test012_testApplicationConfiguration(){
+    public void test012_testApplicationConfiguration() {
         OsgiApplicationConfiguration applicationConfiguration = new OsgiApplicationConfiguration();
         applicationConfiguration.start();
         Assert.assertTrue(applicationConfiguration.getConfiguration().size() > 0);
     }
+
 }
