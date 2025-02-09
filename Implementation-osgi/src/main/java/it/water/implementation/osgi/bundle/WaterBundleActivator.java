@@ -22,6 +22,7 @@ import it.water.core.api.registry.ComponentRegistry;
 import it.water.core.api.service.rest.RestApiManager;
 import it.water.core.bundle.RuntimeInitializer;
 import it.water.core.registry.model.ComponentConfigurationFactory;
+import it.water.core.registry.model.exception.NoComponentRegistryFoundException;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
@@ -65,6 +66,8 @@ public class WaterBundleActivator<T> extends RuntimeInitializer<T, ServiceRegist
         log.debug("Starting {} ...", bundleContext.getBundle().getSymbolicName());
         //loading @FrameworkComponents
         this.startFrameworkComponents();
+        //loading properties
+        this.setupApplicationProperties();
         //running onActivate Methods
         this.activateComponents();
         //Initializing permissions
@@ -91,19 +94,28 @@ public class WaterBundleActivator<T> extends RuntimeInitializer<T, ServiceRegist
      */
     @Override
     protected ComponentRegistry getComponentRegistry() {
-        BundleContext ctx = FrameworkUtil.getBundle(this.getClass()).getBundleContext();
-        ServiceReference<ComponentRegistry> sr = ctx.getServiceReference(ComponentRegistry.class);
-        return ctx.getService(sr);
+        ServiceReference<ComponentRegistry> sr = bundleContext.getServiceReference(ComponentRegistry.class);
+        return bundleContext.getService(sr);
     }
 
     /**
      * Creates a new application properties component, reading property file.
      */
     protected void setupApplicationProperties() {
-        ApplicationProperties waterApplicationProperties = new OsgiApplicationProperties();
-        ComponentConfiguration configuration = ComponentConfigurationFactory.createNewComponentPropertyFactory().build();
-        waterApplicationProperties.setup();
-        this.getComponentRegistry().registerComponent(ApplicationProperties.class, waterApplicationProperties, configuration);
+        //Using one global application properties for all modules;
+        ApplicationProperties waterApplicationProperties = null;
+        try {
+            waterApplicationProperties = this.getComponentRegistry().findComponent(ApplicationProperties.class, null);
+        } catch (NoComponentRegistryFoundException e) {
+            waterApplicationProperties = new OsgiApplicationProperties();
+            ComponentConfiguration configuration = ComponentConfigurationFactory.createNewComponentPropertyFactory().build();
+            waterApplicationProperties.setup();
+            this.getComponentRegistry().registerComponent(ApplicationProperties.class, waterApplicationProperties, configuration);
+        }
+        if (waterApplicationProperties != null) {
+            //loading specific bundle config
+            ((OsgiApplicationProperties) waterApplicationProperties).loadBundleProperties(bundleContext);
+        }
     }
 
     /**

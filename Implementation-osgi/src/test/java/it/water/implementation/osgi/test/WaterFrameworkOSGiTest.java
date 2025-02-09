@@ -194,9 +194,9 @@ public class WaterFrameworkOSGiTest extends KarafTestSupport {
         ComponentRegistry componentRegistry = getOsgiService(ComponentRegistry.class);
         ApplicationProperties applicationProperties = componentRegistry.findComponent(ApplicationProperties.class, null);
         Properties propertiesToUnload = new Properties();
-        propertiesToUnload.put("water.testMode","false");
+        propertiesToUnload.put("it.water.testMode","false");
         applicationProperties.unloadProperties(propertiesToUnload);
-        Assert.assertFalse(applicationProperties.containsKey("water.testMode"));
+        Assert.assertFalse(applicationProperties.containsKey("it.water.testMode"));
     }
 
     @Test

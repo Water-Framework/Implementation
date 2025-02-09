@@ -24,6 +24,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.Dictionary;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Properties;
 
@@ -35,6 +40,9 @@ public class OsgiApplicationProperties implements ApplicationProperties {
     private static Logger logger = LoggerFactory.getLogger(OsgiApplicationProperties.class);
 
     private static final String APPLICATION_DEFAULT_CFG = "etc/it.water.application";
+    private static final String DEFAULT_CFG_PID = "it.water.application";
+    private static final String DEFAULT_PROPERTY_FILE = DEFAULT_CFG_PID + ".properties";
+
     private Properties properties;
 
     @Override
@@ -46,12 +54,47 @@ public class OsgiApplicationProperties implements ApplicationProperties {
 
     @Override
     public Object getProperty(String key) {
-        return properties.get(key);
+        try {
+            if (containsKey(key))
+                return this.resolvePropertyValue(getConfigurationAdmin().getConfiguration(DEFAULT_CFG_PID).getProperties().get(key).toString());
+        } catch (IOException e) {
+            logger.error("Error while loading configuration", e);
+        }
+        return null;
     }
 
     @Override
     public boolean containsKey(String key) {
-        return properties.containsKey(key);
+        try {
+            return getConfigurationAdmin().getConfiguration(DEFAULT_CFG_PID).getProperties().get(key) != null;
+        } catch (IOException e) {
+            logger.error("Error while loading configuration", e);
+        }
+        return false;
+    }
+
+    public void loadBundleProperties(BundleContext bundleContext) {
+        try {
+            URL cfgResource = bundleContext.getBundle().getResource(DEFAULT_PROPERTY_FILE);
+            if (cfgResource != null) {
+                Properties props = new Properties();
+                try (InputStream is = cfgResource.openStream()) {
+                    props.load(is);
+                }
+
+                //adding only properties not already defined
+                props.keySet().forEach(key -> {
+                    Object value = props.get(key);
+                    if (!this.properties.contains(key)) {
+                        this.properties.put(key, value);
+                    } else
+                        logger.warn("WATER PROPERTY CONFLICT! Key {} with value {} from module {}. will be discarded", key, value, bundleContext.getBundle().getSymbolicName());
+                });
+                updateOsgiConfigurationManager();
+            }
+        } catch (IOException e) {
+            logger.error("Error loading application properties", e);
+        }
     }
 
     @Override
@@ -95,11 +138,26 @@ public class OsgiApplicationProperties implements ApplicationProperties {
     @Override
     public void unloadProperties(Properties props) {
         props.keySet().forEach(key -> this.properties.remove(key));
+        updateOsgiConfigurationManager();
     }
-
 
     private ConfigurationAdmin getConfigurationAdmin() {
         BundleContext bundleContext = FrameworkUtil.getBundle(this.getClass()).getBundleContext();
         return bundleContext.getService(bundleContext.getServiceReference(ConfigurationAdmin.class));
+    }
+
+    private void updateOsgiConfigurationManager() {
+        //Updating the whole it.water.application.cfg with all properties merged
+        Dictionary<String, Object> dictionary = new Hashtable<>();
+        this.properties.forEach((key, value) -> {
+            dictionary.put(key.toString(), value);
+        });
+        try {
+            Configuration configuration = getConfigurationAdmin().getConfiguration(DEFAULT_CFG_PID);
+            //save config osgi
+            configuration.update(dictionary);
+        } catch (IOException e) {
+            logger.error(e.getMessage(), e);
+        }
     }
 }

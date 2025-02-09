@@ -39,7 +39,7 @@ public class SpringApplicationProperties implements ApplicationProperties {
 
     @Override
     public Object getProperty(String key) {
-        return environment.getProperty(key);
+        return resolvePropertyValue(environment.getProperty(key));
     }
 
     @Override
