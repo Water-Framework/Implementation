@@ -76,28 +76,31 @@ public class OsgiComponentRegistry extends AbstractComponentRegistry implements 
     public <T> List<T> findComponents(Class<T> componentClass, ComponentFilter filter) {
         try {
             BundleContext bundleContext = getBundleContext(componentClass);
-            String filterStr = (filter != null) ? filter.getFilter() : null;
-            Collection<ServiceReference<T>> serviceReferences = bundleContext.getServiceReferences(componentClass, filterStr);
-            List<ServiceReference<T>> orderedServiceReferences = new ArrayList<>(serviceReferences);
-            Collections.sort(orderedServiceReferences, (sr1, sr2) -> {
-                //we don't know if standard components have been registered
-                //so we put the lowest priority
-                int prioritySr1 = (sr1.getProperty(PRIORITY) != null) ? (Integer) sr1.getProperty(PRIORITY) : -1;
-                int prioritySr2 = (sr2.getProperty(PRIORITY) != null) ? (Integer) sr2.getProperty(PRIORITY) : -1;
-                if (prioritySr1 > prioritySr2)
-                    return -1;
-                else if (prioritySr1 == prioritySr2)
-                    return 0;
-                return 1;
-            });
-            return orderedServiceReferences.stream().map(bundleContext::getService).toList();
+            //if context is null just need to reload next time
+            if (bundleContext != null) {
+                String filterStr = (filter != null) ? filter.getFilter() : null;
+                Collection<ServiceReference<T>> serviceReferences = bundleContext.getServiceReferences(componentClass, filterStr);
+                List<ServiceReference<T>> orderedServiceReferences = new ArrayList<>(serviceReferences);
+                Collections.sort(orderedServiceReferences, (sr1, sr2) -> {
+                    //we don't know if standard components have been registered
+                    //so we put the lowest priority
+                    int prioritySr1 = (sr1.getProperty(PRIORITY) != null) ? (Integer) sr1.getProperty(PRIORITY) : -1;
+                    int prioritySr2 = (sr2.getProperty(PRIORITY) != null) ? (Integer) sr2.getProperty(PRIORITY) : -1;
+                    if (prioritySr1 > prioritySr2)
+                        return -1;
+                    else if (prioritySr1 == prioritySr2)
+                        return 0;
+                    return 1;
+                });
+                return orderedServiceReferences.stream().map(bundleContext::getService).toList();
+            }
         } catch (InvalidSyntaxException e) {
             throw new WaterRuntimeException(e.getMessage());
         } catch (Exception e) {
             log.error("Unknown error while trying to find component {},please check exported and imported packages!", componentClass.getName());
             log.error(e.getMessage(), e);
-            return null;
         }
+        return Collections.emptyList();
     }
 
     @Override
