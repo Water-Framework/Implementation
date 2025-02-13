@@ -66,7 +66,7 @@ public class OsgiComponentRegistry extends AbstractComponentRegistry implements 
         List<T> components = findComponents(componentClass, filter);
         if (components != null && !components.isEmpty()) {
             if (components.size() > 1)
-                log.warn("Multiple components found for type: {}, returning the one with highest priority ", componentClass.getName());
+                log.debug("Multiple components found for type: {}, returning the one with highest priority ", componentClass.getName());
             return components.get(0);
         }
         throw new NoComponentRegistryFoundException("No components found for :" + componentClass.getName() + " with filter: " + filter);

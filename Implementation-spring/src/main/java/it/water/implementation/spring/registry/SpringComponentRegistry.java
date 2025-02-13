@@ -68,7 +68,7 @@ public class SpringComponentRegistry extends AbstractComponentRegistry implement
         List<T> componentsList = this.findComponents(componentClass, filter);
         if (componentsList != null && !componentsList.isEmpty()) {
             if (componentsList.size() > 1)
-                log.warn("Multiple components found for type: {}, returning the one with highest priority ", componentClass.getName());
+                log.debug("Multiple components found for type: {}, returning the one with highest priority ", componentClass.getName());
             return componentsList.get(0);
         }
         throw new NoComponentRegistryFoundException("No components found for :" + componentClass.getName() + " with filter: " + filter);
