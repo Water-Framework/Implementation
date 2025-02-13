@@ -149,6 +149,8 @@ public class OsgiComponentRegistry extends AbstractComponentRegistry implements 
 
     @Override
     public <T> boolean unregisterComponent(Class<T> componentClass, T component) {
+        if (component == null)
+            return false;
         //retrieving registration for specific component class which is the implementation class
         Class<?> classToFind = component.getClass();
         if (Proxy.isProxyClass(classToFind) && Proxy.getInvocationHandler(component) instanceof OsgiServiceInterceptor<?> osgiServiceInterceptor) {

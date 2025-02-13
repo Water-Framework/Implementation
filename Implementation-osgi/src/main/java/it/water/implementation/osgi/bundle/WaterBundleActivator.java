@@ -24,7 +24,6 @@ import it.water.core.bundle.RuntimeInitializer;
 import it.water.core.registry.model.ComponentConfigurationFactory;
 import it.water.core.registry.model.exception.NoComponentRegistryFoundException;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.framework.wiring.BundleWiring;
@@ -143,16 +142,18 @@ public class WaterBundleActivator<T> extends RuntimeInitializer<T, ServiceRegist
      * Stops Rest APIs
      */
     protected void stopRestApis() {
-        BundleContext ctx = FrameworkUtil.getBundle(this.getClass()).getBundleContext();
-        ServiceReference<RestApiManager> restApiManagerServiceReference = ctx.getServiceReference(RestApiManager.class);
+        if (this.bundleContext == null)
+            return;
+        ServiceReference<RestApiManager> restApiManagerServiceReference = this.bundleContext.getServiceReference(RestApiManager.class);
         if (restApiManagerServiceReference != null) {
-            RestApiManager restApiManager = ctx.getService(restApiManagerServiceReference);
+            RestApiManager restApiManager = this.bundleContext.getService(restApiManagerServiceReference);
             try {
                 restApiManager.stopRestApiServer();
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }
         }
+
     }
 
 
@@ -173,6 +174,8 @@ public class WaterBundleActivator<T> extends RuntimeInitializer<T, ServiceRegist
 
     @Override
     protected ClassLoader getCurrentClassLoader() {
+        if (bundleContext == null)
+            return Thread.currentThread().getContextClassLoader();
         return bundleContext.getBundle().adapt(BundleWiring.class).getClassLoader();
     }
 }
