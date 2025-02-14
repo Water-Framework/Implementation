@@ -62,7 +62,7 @@ public class WaterBundleActivator<T> extends RuntimeInitializer<T, ServiceRegist
     @Override
     public void start(BundleContext bundleContext) throws Exception {
         this.bundleContext = bundleContext;
-        log.debug("Starting {} ...", bundleContext.getBundle().getSymbolicName());
+        log.debug("--------- STARTING BUNDLE ACTIVATION OF {} ---------", bundleContext.getBundle().getSymbolicName());
         //loading @FrameworkComponents
         this.startFrameworkComponents();
         //loading properties
@@ -73,7 +73,7 @@ public class WaterBundleActivator<T> extends RuntimeInitializer<T, ServiceRegist
         this.initializeResourcePermissionsAndActions();
         //Register rest api if any
         this.startRestApis();
-        log.debug(" Bundle {} \" - Activation Completed!\"", bundleContext.getBundle().getSymbolicName());
+        log.debug("--------- ACTIVATION OF {} COMPLETED ---------", bundleContext.getBundle().getSymbolicName());
     }
 
     @Override
