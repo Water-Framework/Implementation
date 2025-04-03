@@ -145,6 +145,10 @@ class SpringApplicationTest {
         ComponentRegistration<ServiceInterface, String> registration = this.waterComponentRegistry.registerComponent(ServiceInterface.class, customComponent, ComponentConfigurationFactory.createNewComponentPropertyFactory().withPriority(4).build());
         Assertions.assertNotNull(registration);
         Assertions.assertNotNull(registration.getConfiguration());
+        Assertions.assertNotNull(this.waterComponentRegistry.getComponentFilterBuilder());
+        Assertions.assertNotNull(this.waterComponentRegistry.findEntitySystemApi(FakeEntity.class.getName()));
+        Assertions.assertNotNull(this.waterComponentRegistry.findEntityRepository(FakeEntity.class.getName()));
+        Assertions.assertNull(this.waterComponentRegistry.findEntityExtensionRepository(FakeEntity.class));
         Assertions.assertEquals(ServiceInterface.class, registration.getRegistrationClass());
         Assertions.assertDoesNotThrow(() -> this.waterComponentRegistry.unregisterComponent(registration));
     }

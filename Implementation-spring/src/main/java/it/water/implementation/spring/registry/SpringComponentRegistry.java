@@ -23,6 +23,7 @@ import it.water.core.api.registry.ComponentRegistration;
 import it.water.core.api.registry.ComponentRegistry;
 import it.water.core.api.registry.filter.ComponentFilter;
 import it.water.core.api.registry.filter.ComponentFilterBuilder;
+import it.water.core.api.repository.BaseRepository;
 import it.water.core.api.service.BaseEntitySystemApi;
 import it.water.core.registry.AbstractComponentRegistry;
 import it.water.core.registry.model.exception.NoComponentRegistryFoundException;
@@ -66,7 +67,7 @@ public class SpringComponentRegistry extends AbstractComponentRegistry implement
     @Override
     public <T> T findComponent(Class<T> componentClass, ComponentFilter filter) {
         List<T> componentsList = this.findComponents(componentClass, filter);
-        if (componentsList != null && !componentsList.isEmpty()) {
+        if (!componentsList.isEmpty()) {
             if (componentsList.size() > 1)
                 log.debug("Multiple components found for type: {}, returning the one with highest priority ", componentClass.getName());
             return componentsList.get(0);
@@ -119,6 +120,16 @@ public class SpringComponentRegistry extends AbstractComponentRegistry implement
     public <T extends BaseEntitySystemApi> T findEntitySystemApi(String entityClassName) {
         Map<String, BaseEntitySystemApi> services = applicationContext.getBeansOfType(BaseEntitySystemApi.class);
         Optional<BaseEntitySystemApi> optService = services.values().stream().filter(service -> service.getEntityType().getName().equals(entityClassName)).findAny();
+        if (optService.isPresent()) {
+            return (T) optService.get();
+        }
+        return null;
+    }
+
+    @Override
+    public <T extends BaseRepository> T findEntityRepository(String entityClassName) {
+        Map<String, BaseRepository> services = applicationContext.getBeansOfType(BaseRepository.class);
+        Optional<BaseRepository> optService = services.values().stream().filter(service -> service.getEntityType().getName().equals(entityClassName)).findAny();
         if (optService.isPresent()) {
             return (T) optService.get();
         }

@@ -23,21 +23,25 @@ import it.water.core.api.registry.ComponentRegistration;
 import it.water.core.api.registry.ComponentRegistry;
 import it.water.core.api.registry.filter.ComponentFilter;
 import it.water.core.api.registry.filter.ComponentFilterBuilder;
+import it.water.core.api.repository.BaseRepository;
 import it.water.core.api.service.BaseEntitySystemApi;
 import it.water.core.api.service.Service;
-import it.water.core.model.exceptions.WaterRuntimeException;
 import it.water.core.registry.AbstractComponentRegistry;
 import it.water.core.registry.model.ComponentConfigurationFactory;
 import it.water.core.registry.model.exception.NoComponentRegistryFoundException;
 import it.water.implementation.osgi.interceptors.OsgiServiceInterceptor;
 import it.water.implementation.osgi.util.OSGiUtil;
 import it.water.implementation.osgi.util.filter.OSGiComponentFilterBuilder;
-import org.osgi.framework.*;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.ServiceReference;
+import org.osgi.framework.ServiceRegistration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Proxy;
 import java.util.*;
+import java.util.function.Predicate;
 
 
 /**
@@ -64,7 +68,7 @@ public class OsgiComponentRegistry extends AbstractComponentRegistry implements 
     @Override
     public <T> T findComponent(Class<T> componentClass, ComponentFilter filter) {
         List<T> components = findComponents(componentClass, filter);
-        if (components != null && !components.isEmpty()) {
+        if (!components.isEmpty()) {
             if (components.size() > 1)
                 log.debug("Multiple components found for type: {}, returning the one with highest priority ", componentClass.getName());
             return components.get(0);
@@ -94,11 +98,8 @@ public class OsgiComponentRegistry extends AbstractComponentRegistry implements 
                 });
                 return orderedServiceReferences.stream().map(bundleContext::getService).toList();
             }
-        } catch (InvalidSyntaxException e) {
-            throw new WaterRuntimeException(e.getMessage());
         } catch (Exception e) {
-            log.error("Unknown error while trying to find component {},please check exported and imported packages!", componentClass.getName());
-            log.error(e.getMessage(), e);
+            log.error("Unknown error while trying to find component {}, with message {},please check exported and imported packages!", componentClass.getName(), e.getMessage(), e);
         }
         return Collections.emptyList();
     }
@@ -171,18 +172,25 @@ public class OsgiComponentRegistry extends AbstractComponentRegistry implements 
         return componentFilterBuilder;
     }
 
-
     @Override
     public <T extends BaseEntitySystemApi> T findEntitySystemApi(String entityClassName) {
+        return (T) scanWaterServicesFor(BaseEntitySystemApi.class, service -> service.getEntityType().getName().equals(entityClassName));
+    }
+
+    @Override
+    public <T extends BaseRepository> T findEntityRepository(String entityClassName) {
+        return (T) scanWaterServicesFor(BaseRepository.class, service -> service.getEntityType().getClass().getName().equals(entityClassName));
+    }
+
+    private <T extends Service> Service scanWaterServicesFor(Class<T> serviceClass, Predicate<T> filter) {
         try {
             BundleContext ctx = getBundleContext(OsgiComponentRegistry.class);
             ServiceReference<?>[] services = ctx.getServiceReferences((String) null, "(" + OSGiUtil.WATER_OSGI_PROPS_PROXY + "=true)");
             Optional<?> serviceOpt = Arrays.stream(services).map(ctx::getService).filter(service -> {
                 Class<?>[] interfaces = service.getClass().getInterfaces();
                 return Arrays.stream(interfaces).anyMatch(curInterface -> {
-                    if (BaseEntitySystemApi.class.isAssignableFrom(curInterface)) {
-                        BaseEntitySystemApi<?> baseEntitySystemApi = (BaseEntitySystemApi<?>) service;
-                        return baseEntitySystemApi.getEntityType().getName().equals(entityClassName);
+                    if (serviceClass.isAssignableFrom(curInterface)) {
+                        return filter.test((T) service);
                     }
                     return false;
                 });

@@ -17,6 +17,7 @@
 package it.water.implementation.osgi.test;
 
 import it.water.core.api.bundle.ApplicationProperties;
+import it.water.core.api.model.BaseEntity;
 import it.water.core.api.registry.ComponentRegistration;
 import it.water.core.api.registry.ComponentRegistry;
 import it.water.core.api.registry.filter.ComponentFilter;
@@ -163,6 +164,9 @@ public class WaterFrameworkOSGiTest extends KarafTestSupport {
         ServiceInterface customComponent = new ServiceInterfaceImpl2();
         ComponentRegistry waterComponentRegistry = getOsgiService(ComponentRegistry.class);
         ComponentRegistration<ServiceInterface, String> registration = waterComponentRegistry.registerComponent(ServiceInterface.class, customComponent, ComponentConfigurationFactory.createNewComponentPropertyFactory().withPriority(4).build());
+        Assert.assertNotNull(waterComponentRegistry.getComponentFilterBuilder());
+        Assert.assertNull(waterComponentRegistry.findEntityRepository("it.water.fake.class"));
+        Assert.assertNull(waterComponentRegistry.findEntityExtensionRepository(BaseEntity.class));
         Assert.assertNotNull(registration);
         Assert.assertNotNull(registration.getConfiguration());
         Assert.assertEquals(ServiceInterface.class, registration.getRegistrationClass());
