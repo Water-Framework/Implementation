@@ -179,7 +179,7 @@ public class OsgiComponentRegistry extends AbstractComponentRegistry implements 
 
     @Override
     public <T extends BaseRepository> T findEntityRepository(String entityClassName) {
-        return (T) scanWaterServicesFor(BaseRepository.class, service -> service.getEntityType().getClass().getName().equals(entityClassName));
+        return (T) scanWaterServicesFor(BaseRepository.class, service -> service.getEntityType().getName().equals(entityClassName));
     }
 
     private <T extends Service> Service scanWaterServicesFor(Class<T> serviceClass, Predicate<T> filter) {
