@@ -50,6 +50,7 @@ public class SpringApplicationConfiguration implements ApplicationConfiguration 
             for (PropertySource<?> propertySource : ((AbstractEnvironment) environment).getPropertySources()) {
                 if (propertySource instanceof EnumerablePropertySource) {
                     for (String propertyName : ((EnumerablePropertySource<?>) propertySource).getPropertyNames()) {
+                        log.info(propertyName+" value {} "+environment.getProperty(propertyName));
                         props.put(propertyName, environment.getProperty(propertyName));
                     }
                 }
