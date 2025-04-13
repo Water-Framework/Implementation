@@ -54,7 +54,7 @@ allprojects {
 
 sonarqube {
     properties {
-        // Configurazione globale del progetto Sonar
+        // Global configuration for sonar project
         property "sonar.projectKey", "water.Implementation"
         property "sonar.projectName", "water.Implementation"
         property "sonar.projectVersion", project.waterVersion
