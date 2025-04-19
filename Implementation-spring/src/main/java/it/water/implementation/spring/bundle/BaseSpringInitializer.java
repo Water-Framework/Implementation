@@ -70,6 +70,8 @@ public class BaseSpringInitializer<T> extends RuntimeInitializer<T, String> impl
             log.info("################# Starting Water Framework #################");
             log.debug("Setting up actions and permissions....");
             this.initializeResourcePermissionsAndActions();
+            log.debug("Checking cluster mode....");
+            this.setupClusterMode();
             log.debug("Registering rest APIs....");
             this.initializeRestApis();
             log.debug("################# Water Framework Application Setup Complete! #################");

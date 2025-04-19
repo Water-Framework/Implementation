@@ -71,6 +71,8 @@ public class WaterBundleActivator<T> extends RuntimeInitializer<T, ServiceRegist
         this.activateComponents();
         //Initializing permissions
         this.initializeResourcePermissionsAndActions();
+        //Setup cluster if needed
+        this.setupClusterMode();
         //Register rest api if any
         this.startRestApis();
         log.debug("--------- ACTIVATION OF {} COMPLETED ---------", bundleContext.getBundle().getSymbolicName());
@@ -81,6 +83,8 @@ public class WaterBundleActivator<T> extends RuntimeInitializer<T, ServiceRegist
         log.debug("Stopping Base OSGi activator...");
         //Stop rest apis if any
         stopRestApis();
+        //shutting down cluster registration
+        shutDownClusterMode();
         log.debug("Unregistering framework components...");
         unregisterFrameworkComponents();
         this.bundleContext = null;
