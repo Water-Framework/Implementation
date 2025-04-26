@@ -22,7 +22,6 @@ import it.water.core.api.registry.ComponentRegistration;
 import it.water.core.api.registry.ComponentRegistry;
 import it.water.core.api.registry.filter.ComponentFilter;
 import it.water.core.api.service.Service;
-import it.water.core.bundle.PropertiesNames;
 import it.water.core.interceptors.annotations.implementation.WaterComponentsInjector;
 import it.water.core.model.exceptions.ValidationException;
 import it.water.core.registry.model.ComponentConfigurationFactory;
@@ -122,7 +121,7 @@ public class WaterFrameworkOSGiTest extends KarafTestSupport {
     public void test004_checkLoadedProperties() {
         ApplicationProperties waterApplicationProperties = getOsgiService(ApplicationProperties.class);
         Assert.assertNotNull(waterApplicationProperties);
-        Assert.assertEquals("true", waterApplicationProperties.getProperty(PropertiesNames.HYPERIOT_TEST_MODE));
+        Assert.assertEquals("true", waterApplicationProperties.getProperty("water.testMode"));
     }
 
     @Test
