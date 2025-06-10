@@ -46,6 +46,7 @@ public class BaseSpringInitializer<T> extends RuntimeInitializer<T, String> impl
     private static boolean started = false;
     private static boolean initialized = false;
 
+    @SuppressWarnings("null")
     @Override
     public synchronized void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
         if (!initialized) {

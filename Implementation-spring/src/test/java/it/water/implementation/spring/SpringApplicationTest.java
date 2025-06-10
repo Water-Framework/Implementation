@@ -58,8 +58,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @ContextConfiguration(classes = TestConfiguration.class)
 @EnableWaterFramework
 class SpringApplicationTest {
+    @SuppressWarnings("unused")
     private static final String FIELD1_NAME = "field1";
+    @SuppressWarnings("unused")
     private static final String FIELD2_NAME = "field2";
+    @SuppressWarnings("unused")
     private static final String FIELD_VALUE = "field1New";
     @Autowired
     ComponentRegistry waterComponentRegistry;

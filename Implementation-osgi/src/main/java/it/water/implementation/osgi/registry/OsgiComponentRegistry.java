@@ -17,10 +17,29 @@
 
 package it.water.implementation.osgi.registry;
 
+import java.lang.reflect.Proxy;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Predicate;
+
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.ServiceReference;
+import org.osgi.framework.ServiceRegistration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import it.water.core.api.interceptors.OnDeactivate;
 import it.water.core.api.registry.ComponentConfiguration;
 import it.water.core.api.registry.ComponentRegistration;
-import it.water.core.api.registry.ComponentRegistry;
 import it.water.core.api.registry.filter.ComponentFilter;
 import it.water.core.api.registry.filter.ComponentFilterBuilder;
 import it.water.core.api.repository.BaseRepository;
@@ -32,23 +51,13 @@ import it.water.core.registry.model.exception.NoComponentRegistryFoundException;
 import it.water.implementation.osgi.interceptors.OsgiServiceInterceptor;
 import it.water.implementation.osgi.util.OSGiUtil;
 import it.water.implementation.osgi.util.filter.OSGiComponentFilterBuilder;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.framework.ServiceReference;
-import org.osgi.framework.ServiceRegistration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.lang.reflect.Proxy;
-import java.util.*;
-import java.util.function.Predicate;
 
 
 /**
  * @Author Aristide Cittadino
  * No need to register as component since the base initializer do it automatically.
  */
-public class OsgiComponentRegistry extends AbstractComponentRegistry implements ComponentRegistry {
+public class OsgiComponentRegistry extends AbstractComponentRegistry {
     private static final Logger log = LoggerFactory.getLogger(OsgiComponentRegistry.class);
     private static final String PRIORITY = "it.water.component.priority";
     public static final OSGiComponentFilterBuilder componentFilterBuilder = new OSGiComponentFilterBuilder();
@@ -104,6 +113,7 @@ public class OsgiComponentRegistry extends AbstractComponentRegistry implements 
         return Collections.emptyList();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T, K> ComponentRegistration<T, K> registerComponent(Class<? extends T> componentClass, T component, ComponentConfiguration configuration) {
         BundleContext context = getBundleContext(component.getClass());
@@ -143,8 +153,9 @@ public class OsgiComponentRegistry extends AbstractComponentRegistry implements 
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public boolean unregisterComponent(ComponentRegistration registration) {
+    public boolean unregisterComponent(@SuppressWarnings("rawtypes") ComponentRegistration registration) {
         return unregisterComponent(registration.getRegistrationClass(), registration.getComponent());
     }
 
@@ -172,16 +183,19 @@ public class OsgiComponentRegistry extends AbstractComponentRegistry implements 
         return componentFilterBuilder;
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
     public <T extends BaseEntitySystemApi> T findEntitySystemApi(String entityClassName) {
         return (T) scanWaterServicesFor(BaseEntitySystemApi.class, service -> service.getEntityType().getName().equals(entityClassName));
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
     public <T extends BaseRepository> T findEntityRepository(String entityClassName) {
         return (T) scanWaterServicesFor(BaseRepository.class, service -> service.getEntityType().getName().equals(entityClassName));
     }
 
+    @SuppressWarnings("unchecked")
     private <T extends Service> Service scanWaterServicesFor(Class<T> serviceClass, Predicate<T> filter) {
         try {
             BundleContext ctx = getBundleContext(OsgiComponentRegistry.class);

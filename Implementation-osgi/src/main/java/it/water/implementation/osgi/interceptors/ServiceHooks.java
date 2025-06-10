@@ -72,6 +72,7 @@ public class ServiceHooks implements EventListenerHook, FindHook {
                 Dictionary<String, Object> properties = buildProps(propertyKeys, serviceReference);
                 Bundle bundle = serviceReference.getBundle();
                 if (bundle != null && isWaterService(serviceReference)) {
+                    @SuppressWarnings("unchecked")
                     ServiceReference<S> wtfServiceRef = (ServiceReference<S>) serviceReference;
                     String[] interfaces = (String[]) wtfServiceRef.getProperty(OBJECT_CLASS);
                     S service = bundle.getBundleContext().getService(wtfServiceRef);
@@ -95,10 +96,11 @@ public class ServiceHooks implements EventListenerHook, FindHook {
      * @param references  found references
      */
     @Override
-    public void find(BundleContext bc, String name, String filter, boolean allServices, Collection references) {
+    public void find(BundleContext bc, String name, String filter, boolean allServices, @SuppressWarnings("rawtypes") Collection references) {
         try {
             Iterator<?> iterator = references.iterator();
             while (iterator.hasNext()) {
+                @SuppressWarnings("rawtypes")
                 ServiceReference<?> sr = (ServiceReference) iterator.next();
                 if (isWaterService(sr)) {
                     iterator.remove();
@@ -125,6 +127,7 @@ public class ServiceHooks implements EventListenerHook, FindHook {
             if (isWaterService(serviceReference)) {
                 //no bundle will receive updates from this one because it's not the proxied one
                 listeners.clear();
+                @SuppressWarnings("unchecked")
                 ServiceReference<Service> wtfServiceRef = (ServiceReference<Service>) event.getServiceReference();
                 String[] interfaces = (String[]) wtfServiceRef.getProperty(OBJECT_CLASS);
                 switch (event.getType()) {

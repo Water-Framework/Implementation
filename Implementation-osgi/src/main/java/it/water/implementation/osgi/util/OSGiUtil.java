@@ -102,6 +102,7 @@ public class OSGiUtil {
             Class<?>[] toClass = toClass(interfacesToRegister, bundleSource);
             componentConfiguration.put(WATER_OSGI_PROPS_PROXY, true);
             Object waterServiceProxy = Proxy.newProxyInstance(cl, toClass, osgiServiceInterceptor);
+            @SuppressWarnings("unchecked")
             ServiceRegistration<S> registration = (ServiceRegistration<S>) bundleSource.getBundleContext().registerService(toString(toClass), waterServiceProxy, componentConfiguration);
             osgiServiceInterceptor.setRegistration(registration);
             return registration;
@@ -120,6 +121,7 @@ public class OSGiUtil {
      * @param serviceClass
      * @param <S>
      */
+    @SuppressWarnings("rawtypes")
     public static <S extends ServiceReference> void unregisterProxyService(Bundle bundleSource, Class<S> serviceClass) {
         try {
             Collection<ServiceReference<S>> references = bundleSource.getBundleContext().getServiceReferences(serviceClass, "(" + WATER_OSGI_PROPS_PROXY + "=true)");

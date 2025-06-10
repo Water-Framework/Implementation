@@ -17,18 +17,15 @@
 
 package it.water.implementation.spring.registry;
 
-import it.water.core.api.interceptors.OnDeactivate;
-import it.water.core.api.registry.ComponentConfiguration;
-import it.water.core.api.registry.ComponentRegistration;
-import it.water.core.api.registry.ComponentRegistry;
-import it.water.core.api.registry.filter.ComponentFilter;
-import it.water.core.api.registry.filter.ComponentFilterBuilder;
-import it.water.core.api.repository.BaseRepository;
-import it.water.core.api.service.BaseEntitySystemApi;
-import it.water.core.registry.AbstractComponentRegistry;
-import it.water.core.registry.model.exception.NoComponentRegistryFoundException;
-import it.water.implementation.spring.util.filter.SpringComponentFilterBuilder;
-import lombok.Setter;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.TreeMap;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.PropertyValues;
@@ -38,14 +35,24 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.ApplicationContext;
 
-import java.util.*;
+import it.water.core.api.interceptors.OnDeactivate;
+import it.water.core.api.registry.ComponentConfiguration;
+import it.water.core.api.registry.ComponentRegistration;
+import it.water.core.api.registry.filter.ComponentFilter;
+import it.water.core.api.registry.filter.ComponentFilterBuilder;
+import it.water.core.api.repository.BaseRepository;
+import it.water.core.api.service.BaseEntitySystemApi;
+import it.water.core.registry.AbstractComponentRegistry;
+import it.water.core.registry.model.exception.NoComponentRegistryFoundException;
+import it.water.implementation.spring.util.filter.SpringComponentFilterBuilder;
+import lombok.Setter;
 
 
 /**
  * @Author Aristide Cittadino.
  * No need to register as component since the base initializer do it automatically.
  */
-public class SpringComponentRegistry extends AbstractComponentRegistry implements ComponentRegistry {
+public class SpringComponentRegistry extends AbstractComponentRegistry {
     private Logger log = LoggerFactory.getLogger(SpringComponentRegistry.class);
     @Setter
     private ApplicationContext applicationContext;
@@ -75,6 +82,7 @@ public class SpringComponentRegistry extends AbstractComponentRegistry implement
         throw new NoComponentRegistryFoundException("No components found for :" + componentClass.getName() + " with filter: " + filter);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T, K> ComponentRegistration<T, K> registerComponent(Class<? extends T> componentClass, T component, ComponentConfiguration configuration) {
         String beanName = createBeanName(componentClass, component.getClass(), configuration);
@@ -91,8 +99,10 @@ public class SpringComponentRegistry extends AbstractComponentRegistry implement
         return (ComponentRegistration<T, K>) registration;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T> boolean unregisterComponent(ComponentRegistration<T, ?> registration) {
+        @SuppressWarnings("rawtypes")
         SpringComponentRegistration<String> springComponentRegistration = (SpringComponentRegistration) registration;
         removeBean(springComponentRegistration.getRegistration(), (T) springComponentRegistration.getComponent());
         this.invokeLifecycleMethod(OnDeactivate.class, registration.getRegistrationClass(), registration.getComponent());
@@ -116,6 +126,7 @@ public class SpringComponentRegistry extends AbstractComponentRegistry implement
         return componentFilterBuilder;
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
     public <T extends BaseEntitySystemApi> T findEntitySystemApi(String entityClassName) {
         Map<String, BaseEntitySystemApi> services = applicationContext.getBeansOfType(BaseEntitySystemApi.class);
@@ -126,6 +137,7 @@ public class SpringComponentRegistry extends AbstractComponentRegistry implement
         return null;
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
     public <T extends BaseRepository> T findEntityRepository(String entityClassName) {
         Map<String, BaseRepository> services = applicationContext.getBeansOfType(BaseRepository.class);
