@@ -59,7 +59,6 @@ import it.water.implementation.osgi.util.filter.OSGiComponentFilterBuilder;
  */
 public class OsgiComponentRegistry extends AbstractComponentRegistry {
     private static final Logger log = LoggerFactory.getLogger(OsgiComponentRegistry.class);
-    private static final String PRIORITY = "it.water.component.priority";
     public static final OSGiComponentFilterBuilder componentFilterBuilder = new OSGiComponentFilterBuilder();
     private static OsgiComponentRegistry instance;
     private Map<Class<?>, ServiceRegistration<?>> registrations = new HashMap<>();
@@ -97,8 +96,8 @@ public class OsgiComponentRegistry extends AbstractComponentRegistry {
                 Collections.sort(orderedServiceReferences, (sr1, sr2) -> {
                     //we don't know if standard components have been registered
                     //so we put the lowest priority
-                    int prioritySr1 = (sr1.getProperty(PRIORITY) != null) ? (Integer) sr1.getProperty(PRIORITY) : -1;
-                    int prioritySr2 = (sr2.getProperty(PRIORITY) != null) ? (Integer) sr2.getProperty(PRIORITY) : -1;
+                    int prioritySr1 = (sr1.getProperty(ComponentConfiguration.COMPONENT_PRIORITY_PROPERTY) != null) ? (Integer) sr1.getProperty(ComponentConfiguration.COMPONENT_PRIORITY_PROPERTY) : -1;
+                    int prioritySr2 = (sr2.getProperty(ComponentConfiguration.COMPONENT_PRIORITY_PROPERTY) != null) ? (Integer) sr2.getProperty(ComponentConfiguration.COMPONENT_PRIORITY_PROPERTY) : -1;
                     if (prioritySr1 > prioritySr2)
                         return -1;
                     else if (prioritySr1 == prioritySr2)
@@ -122,7 +121,7 @@ public class OsgiComponentRegistry extends AbstractComponentRegistry {
         }
         //in OSGi priority is added as a property
         //default priority is 1
-        configuration.addProperty(PRIORITY, configuration.getPriority());
+        configuration.addProperty(ComponentConfiguration.COMPONENT_PRIORITY_PROPERTY, configuration.getPriority());
         //adding inferred classes to the registration so they can be read at runtime from osgi properties.
         String[] componentClassesNames = calculateComponentClasses(componentClass, component);
         ServiceRegistration<T> registration = null;
