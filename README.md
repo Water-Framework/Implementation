@@ -3,6 +3,31 @@
 ## Module Goal
 The Implementation module provides the core integration layer for the Water Framework with different runtime environments, specifically OSGi and Spring. It abstracts the underlying platform details, enabling Water components, services, interceptors, security, and configuration to work seamlessly in both OSGi and Spring-based applications. This module is essential for supporting Water's cross-platform, modular, and extensible architecture.
 
+## Architecture Overview
+
+```mermaid
+graph TD
+    A[Implementation Module] --> B[Implementation-osgi]
+    A --> C[Implementation-spring]
+
+    B -->|provides| D[OsgiComponentRegistry]
+    B -->|provides| E[OsgiServiceInterceptor]
+    B -->|provides| F[OsgiSecurityContext]
+    B -->|provides| G[OsgiApplicationProperties]
+
+    C -->|provides| H[SpringComponentRegistry]
+    C -->|provides| I[SpringServiceInterceptor]
+    C -->|provides| J[SpringSecurityContext]
+    C -->|provides| K[SpringApplicationProperties]
+```
+
+## Sub-modules
+
+| Sub-module | Description |
+|---|---|
+| **Implementation-osgi** | OSGi runtime: `OsgiComponentRegistry`, `OsgiServiceInterceptor`, `OsgiSecurityContext`, `OsgiApplicationProperties`, `WaterBundleActivator` |
+| **Implementation-spring** | Spring runtime: `SpringComponentRegistry`, `SpringServiceInterceptor`, `SpringSecurityContext`, `SpringApplicationProperties`, `@EnableWaterFramework` |
+
 ## Module Technical Characteristics
 
 ### Core Technologies
