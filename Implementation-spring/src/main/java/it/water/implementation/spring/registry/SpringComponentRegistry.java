@@ -17,24 +17,6 @@
 
 package it.water.implementation.spring.registry;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.TreeMap;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.PropertyValues;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.context.ApplicationContext;
-
 import it.water.core.api.interceptors.OnDeactivate;
 import it.water.core.api.registry.ComponentConfiguration;
 import it.water.core.api.registry.ComponentRegistration;
@@ -46,6 +28,16 @@ import it.water.core.registry.AbstractComponentRegistry;
 import it.water.core.registry.model.exception.NoComponentRegistryFoundException;
 import it.water.implementation.spring.util.filter.SpringComponentFilterBuilder;
 import lombok.Setter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.PropertyValues;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.context.ApplicationContext;
+
+import java.util.*;
 
 
 /**
@@ -53,6 +45,7 @@ import lombok.Setter;
  * No need to register as component since the base initializer do it automatically.
  */
 public class SpringComponentRegistry extends AbstractComponentRegistry {
+
     private Logger log = LoggerFactory.getLogger(SpringComponentRegistry.class);
     @Setter
     private ApplicationContext applicationContext;
@@ -67,9 +60,22 @@ public class SpringComponentRegistry extends AbstractComponentRegistry {
     public <T> List<T> findComponents(Class<T> componentClass, ComponentFilter filter) {
         //filtering through ComponentFilter "matches" method
         Map<String, T> components = filterComponents(applicationContext.getBeansOfType(componentClass), filter);
-        Collection<T> orderedByPriority = (new TreeMap<String, T>(components)).descendingMap().values();
-        return new ArrayList<>(orderedByPriority);
+
+        // cast the map to a list of entries in order to sort it by priority
+        List<Map.Entry<String, T>> orderedByPriority = new ArrayList<>(components.entrySet());
+
+        // ascending order of priority ( higher priority first ) if no priority is set we consider it as -1
+        orderedByPriority.sort((e1, e2) -> {
+            int p1 = getPriority(e1.getKey());
+            int p2 = getPriority(e2.getKey());
+            return Integer.compare(p2, p1);
+        });
+        // return the concrete components instance in the order of priority
+        return orderedByPriority.stream()
+                .map(Map.Entry::getValue)
+                .toList();
     }
+
 
     @Override
     public <T> T findComponent(Class<T> componentClass, ComponentFilter filter) {
@@ -86,14 +92,21 @@ public class SpringComponentRegistry extends AbstractComponentRegistry {
     @Override
     public <T, K> ComponentRegistration<T, K> registerComponent(Class<? extends T> componentClass, T component, ComponentConfiguration configuration) {
         String beanName = createBeanName(componentClass, component.getClass(), configuration);
+        // configurableBeanFactory implements different interfaces, cast to BeanDefinitionRegistry to use its methods
         BeanDefinitionRegistry beanDefinitionRegistry = ((BeanDefinitionRegistry) configurableBeanFactory);
-        BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(componentClass)
+        // create bean by taking the water component
+        BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder
+                .rootBeanDefinition(componentClass)
                 .setLazyInit(false)
                 .setScope(BeanDefinition.SCOPE_SINGLETON);
+        // tell spring to use this obj instead of creating a new one ( use supplier )
         beanDefinitionBuilder.getRawBeanDefinition().setInstanceSupplier(() -> component);
         beanDefinitionBuilder.setPrimary(configuration.isPrimary());
         //Adding all configured bean properties to the bean definition
         configuration.getConfiguration().forEach((name, value) -> beanDefinitionBuilder.addPropertyValue(name.toString(), value));
+
+        //using setAttribute instead of addPropertyValue to avoid Spring trying to set it as a bean property
+        beanDefinitionBuilder.getRawBeanDefinition().setAttribute(ComponentConfiguration.COMPONENT_PRIORITY_PROPERTY, configuration.getPriority());
         beanDefinitionRegistry.registerBeanDefinition(beanName, beanDefinitionBuilder.getBeanDefinition());
         ComponentRegistration<T, String> registration = new SpringComponentRegistration<>(componentClass, beanName, component);
         return (ComponentRegistration<T, K>) registration;
@@ -151,6 +164,25 @@ public class SpringComponentRegistry extends AbstractComponentRegistry {
     public ApplicationContext getApplicationContext() {
         return this.applicationContext;
     }
+
+
+    /**
+     * Retrive the appropriate bean definition by using the bean name then get the priority attribute,
+     * if any error occurs return -1 as default priority
+     */
+    private int getPriority(String beanName) {
+        try {
+            BeanDefinition def = ((BeanDefinitionRegistry) configurableBeanFactory)
+                    .getBeanDefinition(beanName);
+            // get attribute that have info about the priority of the component
+            Object value = def.getAttribute(ComponentConfiguration.COMPONENT_PRIORITY_PROPERTY);
+            if (value == null) return -1;
+            return Integer.parseInt(value.toString());
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
 
     private <T> void removeBean(String name, T bean) {
         BeanDefinitionRegistry beanDefinitionRegistry = ((BeanDefinitionRegistry) configurableBeanFactory);
