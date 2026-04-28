@@ -5,6 +5,7 @@ Import-Package: \
     org.osgi.framework.*,\
     org.osgi.service.*,\
     org.osgi.util.*,\
+    org.atteo.classindex;version='${range;[=,+)}',\
     org.slf4j.*,\
     org.hibernate.validator;version='${range;[=,+)}',\
     org.hibernate.validator.*;version='${range;[=,+)}',\
