@@ -77,6 +77,9 @@ public class OsgiServiceInterceptor<S extends Service> extends WaterAbstractInte
         } catch (InvocationTargetException e) {
             log.debug("Invocation on proxy failed, please check exceptions class: {} method:{} ",method.getDeclaringClass().getName(),method.getName());
             log.debug(e.getMessage(), e);
+            // the failure is reported to the global interceptors BEFORE being rethrown: without it a
+            // failed call is invisible to them and any per-call state they opened on entry leaks
+            executeInterceptorOnErrorMethod(getService(), method, args, e.getTargetException());
             throw e.getTargetException();
         }
     }

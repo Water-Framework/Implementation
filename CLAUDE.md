@@ -35,6 +35,36 @@ public class WaterBundleActivator implements BundleActivator {
 - Bundles published as OSGi-compatible JARs with `Bundle-SymbolicName` manifest headers
 - Feature files in `Distribution-karaf` define installation groups
 
+### `Implementation-osgi` embeds Core — rebuild it after every Core change
+
+This is not a thin adapter: the published bundle carries ~367 `it/water/core/**` classes, and its
+manifest is the one `Distribution-osgi` copies verbatim (`extractManifest`). Two consequences, both
+of which produce a **green build running old code**:
+
+- rebuilding `Core` and then `Distribution` while skipping `Implementation` leaves the stale embedded
+  copies to shadow the new ones (the uber-JAR merges with `DuplicatesStrategy.INCLUDE`);
+- a package newly added to `Core-api` is not exported to OSGi at all until this module is rebuilt,
+  and the container then fails to boot with `missing requirement osgi.wiring.package=...`.
+
+So the order is always `Core → Implementation → ... → Distribution`. `Implementation-spring` embeds
+no Core classes and is not affected.
+
+### Startup order constrains what components may inject
+
+`WaterBundleActivator.start()` runs `startFrameworkComponents()` **before**
+`setupApplicationProperties()`, and `OsgiApplicationProperties` resolves `ConfigurationAdmin` from
+the `BundleContext` while every bundle contributes its own keys via `loadBundleProperties()` as it
+activates. Therefore:
+
+- `ApplicationProperties` **cannot** be injected with `@Inject(injectOnceAtStartup = true)`: it is
+  not registered yet when `ApplicationInitializer.injectFields` runs, and the failed lookup kills the
+  activator — taking the whole container down. Resolve it lazily from the registry instead, and cache
+  it only on success;
+- property **values** must be read per use, not captured once: keys keep arriving while bundles start
+  up, so an early snapshot is incomplete;
+- a plain `@Inject` is unaffected — `injectFields(service, true)` only processes fields declared with
+  `injectOnceAtStartup = true`.
+
 ## Implementation-spring
 
 ### Key Components

@@ -64,6 +64,18 @@ public class SpringServiceInterceptor extends WaterAbstractInterceptor<Service> 
     @AfterThrowing(value = "waterServicesPointcut()", throwing = "ex")
     public void afterThrowing(JoinPoint joinPoint, Exception ex) {
         log.error(ex.getMessage(), ex);
+        try {
+            Method method = MethodSignature.class.cast(joinPoint.getSignature()).getMethod();
+            Object[] args = joinPoint.getArgs();
+            Service target = (Service) joinPoint.getTarget();
+            this.setService(target);
+            // the counterpart of afterServiceExecution on the failure path: exactly one of the two
+            // fires per call, so an interceptor holding per-call state can always release it
+            this.executeInterceptorOnErrorMethod(target, method, args, ex);
+        } catch (Exception e) {
+            // never let telemetry alter the exception the caller is about to receive
+            log.error(e.getMessage(), e);
+        }
     }
 
     @AfterReturning(value = "waterServicesPointcut()", returning = "result")
